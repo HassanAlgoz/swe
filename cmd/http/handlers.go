@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,13 +13,20 @@ import (
 	"github.com/hassanalgoz/swe/internal/entities"
 )
 
+type LocationTypeEnum string
+
+const (
+	LocationTypeHeader    LocationTypeEnum = "header"
+	LocationTypeParameter LocationTypeEnum = "parameter"
+)
+
 // Response conforms to: https://google.github.io/styleguide/jsoncstyleguide.xml
 type Response struct {
-	Data  any           `json:"data,omitempty"`
-	Error ResponseError `json:"error,omitempty"`
+	Data  any   `json:"data,omitempty"`
+	Error Error `json:"error,omitempty"`
 }
 
-type ResponseError struct {
+type Error struct {
 	// This property value will usually represent the HTTP response code.
 	// If there are multiple errors, code will be the error code for the first error.
 	Code int `json:"code"`
@@ -29,10 +37,10 @@ type ResponseError struct {
 
 	// Container for any additional information regarding the error.
 	// If the service returns multiple errors, each element in the errors array represents a different error.
-	Errors []Error `json:"errors"`
+	Errors []ErrorItem `json:"errors"`
 }
 
-type Error struct {
+type ErrorItem struct {
 	// A human readable message providing more details about the error.
 	// If there is only one error, this field will match error.message.
 	Message string `json:"message"`
@@ -41,12 +49,10 @@ type Error struct {
 	// Different from the error.code property in that this is not an http response code.
 	Reason string `json:"reason"`
 
-	// "header" | "parameter"
-	LocationType string `json:"location_type"`
-
 	// if LocationType = "header" then it may be: "Authorization
 	// if LocationType = "parameter" then it may be: "orderId"
-	Location string `json:"location"`
+	Location     string           `json:"location"`
+	LocationType LocationTypeEnum `json:"location_type"`
 }
 
 func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actions) {
@@ -56,7 +62,7 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 		if r.Method != "POST" {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			json.NewEncoder(w).Encode(Response{
-				Error: ResponseError{
+				Error: Error{
 					Code:    http.StatusMethodNotAllowed,
 					Message: "Method Not Allowed",
 				},
@@ -80,7 +86,7 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Response{
-				Error: ResponseError{
+				Error: Error{
 					Code:    http.StatusBadRequest,
 					Message: "Invalid request body",
 				},
@@ -98,7 +104,7 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Response{
-				Error: ResponseError{
+				Error: Error{
 					Code:    http.StatusBadRequest,
 					Message: "Invalid json",
 				},
@@ -108,10 +114,10 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 
 		// Parse body.json.fields
 		// note: errors are appended
-		var fieldsErrors []Error
+		var fieldsErrors []ErrorItem
 		from, err := uuid.Parse(fields.From)
 		if err != nil {
-			fieldsErrors = append(fieldsErrors, Error{
+			fieldsErrors = append(fieldsErrors, ErrorItem{
 				LocationType: "parameter",
 				Location:     "from",
 				Message:      "invalid uuid",
@@ -120,7 +126,7 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 		}
 		to, err := uuid.Parse(fields.To)
 		if err != nil {
-			fieldsErrors = append(fieldsErrors, Error{
+			fieldsErrors = append(fieldsErrors, ErrorItem{
 				LocationType: "parameter",
 				Location:     "to",
 				Message:      "invalid uuid",
@@ -134,9 +140,9 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 		if len(fieldsErrors) > 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(Response{
-				Error: ResponseError{
+				Error: Error{
 					Code:    http.StatusBadRequest,
-					Message: "Invalid parameters",
+					Message: "invalid parameters",
 					Errors:  fieldsErrors,
 				},
 			})
@@ -148,12 +154,64 @@ func registerHandlers(ctx context.Context, mux *http.ServeMux, act actions.Actio
 
 		// Dispatch
 		err = act.MoneyTransfer(from, to, amount)
-		switch err {
-			case entities.ErrNotFound
+		if err != nil {
+			if errors.Is(err, entities.ErrNotFound) {
+				w.WriteHeader(http.StatusNotFound)
+				json.NewEncoder(w).Encode(Response{
+					Error: Error{
+						Code:    http.StatusNotFound,
+						Message: err.Error(),
+					},
+				})
+				return
+			} else if e, ok := err.(*entities.ErrInvalidArgument); ok {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(Response{
+					Error: Error{
+						Code:    http.StatusBadRequest,
+						Message: e.Error(),
+						Errors: []ErrorItem{
+							{
+								Message:      e.Error(),
+								Reason:       e.Reason(),
+								LocationType: LocationTypeParameter,
+								Location:     e.Argument,
+							},
+						},
+					},
+				})
+				return
+			} else if e, ok := err.(*entities.ErrInvalidState); ok {
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(Response{
+					Error: Error{
+						Code:    http.StatusOK,
+						Message: e.Error(),
+						Errors: []ErrorItem{
+							{
+								Message:      e.Error(),
+								Reason:       e.Reason(),
+								LocationType: LocationTypeParameter,
+								Location:     e.RelatedArgument,
+							},
+						},
+					},
+				})
+				return
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(Response{
+					Error: Error{
+						Code:    http.StatusInternalServerError,
+						Message: err.Error(),
+					},
+				})
+				return
+			}
 		}
 
-		// Done
-		w.WriteHeader(http.StatusAccepted)
+		// Success
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(Response{
 			Data: nil,
 		})

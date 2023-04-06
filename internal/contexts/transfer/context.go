@@ -30,7 +30,7 @@ func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entitie
 	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.Freezed)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, entities.ErrNotFound
+			return nil, fmt.Errorf("account id: %w", entities.ErrNotFound)
 		}
 		return nil, err
 	}
@@ -44,15 +44,24 @@ func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entitie
 func (dc *domainContext) SaveTransfer(ctx context.Context, from, to *entities.Account, amount int64) error {
 	// Validate the field itself
 	if amount <= 0 {
-		return fmt.Errorf("%w: amount <= 0", entities.ErrInvalidArgument)
+		return &entities.ErrInvalidArgument{
+			Argument: "amount",
+			Message:  fmt.Sprintf("expected: amount <= 0, got: %v", amount),
+		}
 	}
 
 	// Validate the state of persisted data
 	if from.Freezed {
-		return fmt.Errorf("%w: from-account is freezed", entities.ErrInvalidState)
+		return &entities.ErrInvalidState{
+			RelatedArgument: "from",
+			Message:         "account is freezed",
+		}
 	}
 	if to.Freezed {
-		return fmt.Errorf("%w: to-account is freezed", entities.ErrInvalidState)
+		return &entities.ErrInvalidState{
+			RelatedArgument: "to",
+			Message:         "account is freezed",
+		}
 	}
 
 	tx, err := dc.db.BeginTx(ctx, nil)

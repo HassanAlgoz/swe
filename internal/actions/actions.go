@@ -21,6 +21,10 @@ func New(ctx context.Context, db *sql.DB) Actions {
 }
 
 // MoneyTransfer moves money from one account to another
+// errors:
+// - ErrNotFound: either from- or to-account not found
+// - ErrInvalidArgument: amount <= 0
+// - ErrInvalidState: either from- or to-account is freezed
 func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 	transferContext := transfer.NewContext(a.ctx, a.db)
 
