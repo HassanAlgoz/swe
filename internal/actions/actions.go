@@ -3,32 +3,37 @@ package actions
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/contexts/transfer"
 )
 
-// MoneyTransfer goes from one account to another
-func MoneyTransfer(ctx context.Context, from, to uuid.UUID, amount int64) error {
-	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/bank")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+type Actions struct {
+	ctx context.Context
+	db  *sql.DB
+}
 
-	transferContext := transfer.NewContext(db)
-
-	fromAccount, err := transferContext.GetAccount(ctx, from)
-	if err != nil {
-		log.Fatal(err)
+func New(ctx context.Context, db *sql.DB) Actions {
+	return Actions{
+		ctx: ctx,
+		db:  db,
 	}
-	toAccount, err := transferContext.GetAccount(ctx, to)
+}
+
+// MoneyTransfer moves money from one account to another
+func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
+	transferContext := transfer.NewContext(a.ctx, a.db)
+
+	fromAccount, err := transferContext.GetAccount(a.ctx, from)
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	toAccount, err := transferContext.GetAccount(a.ctx, to)
+	if err != nil {
+		return err
 	}
 
-	err = transferContext.SaveTransfer(ctx, fromAccount, toAccount, amount)
+	err = transferContext.SaveTransfer(a.ctx, fromAccount, toAccount, amount)
 	if err != nil {
 		return err
 	}
