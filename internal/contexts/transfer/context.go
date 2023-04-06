@@ -10,70 +10,65 @@ import (
 )
 
 type domainContext struct {
-	DB *sql.DB
+	db  *sql.DB
+	ctx context.Context
 }
 
-func NewContext(db *sql.DB) domainContext {
-	return domainContext{db}
+func NewContext(ctx context.Context, db *sql.DB) domainContext {
+	return domainContext{
+		ctx: ctx,
+		db:  db,
+	}
 }
 
-func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (entities.Account, error) {
-	var account entities.Account
-	row := dc.DB.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed FROM accounts WHERE id = ?", id)
+// GetAccount
+// errors:
+// - ErrNotFound: account with given id is not found
+func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
+	account := &entities.Account{}
+	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed FROM accounts WHERE id = ?", id)
 	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.Freezed)
 	if err != nil {
-		return account, err
+		if err == sql.ErrNoRows {
+			return nil, entities.ErrNotFound
+		}
+		return nil, err
 	}
 	return account, nil
 }
 
 // SaveTransfer
-// errors cases:
-// - amount <= 0
-// - the from account is freezed
-// - the to account is freezed
-func (dc *domainContext) SaveTransfer(ctx context.Context, from, to entities.Account, amount int64) error {
+// errors:
+// - ErrInvalidArgument: amount <= 0
+// - ErrInvalidState: either from- or to-account is freezed
+func (dc *domainContext) SaveTransfer(ctx context.Context, from, to *entities.Account, amount int64) error {
 	// Validate the field itself
 	if amount <= 0 {
-		return fmt.Errorf(`invalid amount: "%d"`, amount)
+		return fmt.Errorf("%w: amount <= 0", entities.ErrInvalidArgument)
 	}
 
 	// Validate the state of persisted data
 	if from.Freezed {
-		return fmt.Errorf(`the from_account is freezed: "%s"`, from.ID)
+		return fmt.Errorf("%w: from-account is freezed", entities.ErrInvalidState)
 	}
 	if to.Freezed {
-		return fmt.Errorf(`the to_account is freezed: "%s"`, from.ID)
+		return fmt.Errorf("%w: to-account is freezed", entities.ErrInvalidState)
 	}
 
-	tx, err := dc.DB.BeginTx(ctx, nil)
+	tx, err := dc.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	res1, err := tx.ExecContext(ctx, "UPDATE accounts SET balance = balance - ? WHERE id = ?", amount, from.ID)
+	_, err = tx.ExecContext(ctx, "UPDATE accounts SET balance = balance - ? WHERE id = ?", amount, from.ID)
 	if err != nil {
 		return err
-	}
-	rowsAffected1, err := res1.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected1 == 0 {
-		return fmt.Errorf("no rows affected")
 	}
 
-	res2, err := tx.ExecContext(ctx, "UPDATE accounts SET balance = balance + ? WHERE id = ?", amount, to.ID)
+	_, err = tx.ExecContext(ctx, "UPDATE accounts SET balance = balance + ? WHERE id = ?", amount, to.ID)
 	if err != nil {
 		return err
-	}
-	rowsAffected2, err := res2.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected2 == 0 {
-		return fmt.Errorf("no rows affected")
 	}
 
 	err = tx.Commit()
