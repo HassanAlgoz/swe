@@ -1,5 +1,12 @@
 package http
 
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/hassanalgoz/swe/internal/entities"
+)
+
 type LocationTypeEnum string
 
 const (
@@ -40,4 +47,72 @@ type ErrorItem struct {
 	// if LocationType = "parameter" then it may be: "orderId"
 	Location     string           `json:"location"`
 	LocationType LocationTypeEnum `json:"location_type"`
+}
+
+// Ok 200
+func Ok(w http.ResponseWriter, data any) {
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(Response{
+		Data: data,
+	})
+}
+
+// ErrNotFound 404
+func ErrNotFound(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(Response{
+		Error: Error{
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
+		},
+	})
+}
+
+// ErrInternal 500
+func ErrInternal(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(Response{
+		Error: Error{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		},
+	})
+}
+
+// ErrInvalidArgument 400
+func ErrInvalidArgument(w http.ResponseWriter, err *entities.ErrInvalidArgument) {
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(Response{
+		Error: Error{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+			Errors: []ErrorItem{
+				{
+					Message:      err.Error(),
+					Reason:       err.Reason(),
+					LocationType: LocationTypeParameter,
+					Location:     err.Argument,
+				},
+			},
+		},
+	})
+}
+
+// ErrInvalidState 200
+func ErrInvalidState(w http.ResponseWriter, err *entities.ErrInvalidState) {
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(Response{
+		Error: Error{
+			Code:    http.StatusOK,
+			Message: err.Error(),
+			Errors: []ErrorItem{
+				{
+					Message:      err.Error(),
+					Reason:       err.Reason(),
+					LocationType: LocationTypeParameter,
+					Location:     err.RelatedArgument,
+				},
+			},
+		},
+	})
 }

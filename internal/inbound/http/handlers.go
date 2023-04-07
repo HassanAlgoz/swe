@@ -115,63 +115,20 @@ func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	err = c.actions.MoneyTransfer(from, to, amount)
 	if err != nil {
 		if errors.Is(err, entities.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(Response{
-				Error: Error{
-					Code:    http.StatusNotFound,
-					Message: err.Error(),
-				},
-			})
+			ErrNotFound(w, err)
 			return
 		} else if e, ok := err.(*entities.ErrInvalidArgument); ok {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Response{
-				Error: Error{
-					Code:    http.StatusBadRequest,
-					Message: e.Error(),
-					Errors: []ErrorItem{
-						{
-							Message:      e.Error(),
-							Reason:       e.Reason(),
-							LocationType: LocationTypeParameter,
-							Location:     e.Argument,
-						},
-					},
-				},
-			})
+			ErrInvalidArgument(w, e)
 			return
 		} else if e, ok := err.(*entities.ErrInvalidState); ok {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(Response{
-				Error: Error{
-					Code:    http.StatusOK,
-					Message: e.Error(),
-					Errors: []ErrorItem{
-						{
-							Message:      e.Error(),
-							Reason:       e.Reason(),
-							LocationType: LocationTypeParameter,
-							Location:     e.RelatedArgument,
-						},
-					},
-				},
-			})
+			ErrInvalidState(w, e)
 			return
 		} else {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(Response{
-				Error: Error{
-					Code:    http.StatusInternalServerError,
-					Message: err.Error(),
-				},
-			})
+			ErrInternal(w, err)
 			return
 		}
 	}
 
 	// Success
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(Response{
-		Data: nil,
-	})
+	Ok(w, nil)
 }
