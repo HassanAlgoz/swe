@@ -13,6 +13,7 @@ import (
 
 func (c *Controller) registerHandlers() {
 	c.mux.HandleFunc("/actions:transfer-money", c.TransferMoney)
+	c.mux.HandleFunc("/actions:get-account", c.GetAccount)
 }
 
 func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +110,7 @@ func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// pre-action Log
-	log.Printf("Transfer request from %s to %s for %d by user %s", from, to, amount, userID)
+	log.Printf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, userID)
 
 	// Invoke the action
 	err = c.actions.MoneyTransfer(from, to, amount)
@@ -128,4 +129,102 @@ func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
 
 	// Success
 	Ok(w, nil)
+}
+
+func (c *Controller) GetAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(Response{
+			Error: Error{
+				Code:    http.StatusMethodNotAllowed,
+				Message: "Method Not Allowed",
+			},
+		})
+		return
+	}
+
+	// Read request headers, parse, validate, ...etc.
+	userID := r.Header.Get("x-user-id")
+	// Parse, validate.....
+	if userID == "" {
+		userID = "default-user-id"
+	}
+
+	// Apply rules based on headers...
+	// ...
+	// ...
+
+	// Parse body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{
+			Error: Error{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid request body",
+			},
+		})
+		return
+	}
+
+	// Parse body.json
+	var fields struct {
+		ID string `json:"id"`
+	}
+	err = json.Unmarshal(body, &fields)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{
+			Error: Error{
+				Code:    http.StatusBadRequest,
+				Message: "Invalid json",
+			},
+		})
+		return
+	}
+
+	// Parse body.json.fields
+	// note: errors are appended
+	var fieldsErrors []ErrorItem
+	id, err := uuid.Parse(fields.ID)
+	if err != nil {
+		fieldsErrors = append(fieldsErrors, ErrorItem{
+			LocationType: "parameter",
+			Location:     "from",
+			Message:      "invalid uuid",
+			Reason:       err.Error(),
+		})
+	}
+
+	// Return parsing errors (if any)
+	if len(fieldsErrors) > 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{
+			Error: Error{
+				Code:    http.StatusBadRequest,
+				Message: "invalid parameters",
+				Errors:  fieldsErrors,
+			},
+		})
+		return
+	}
+
+	// pre-action Log
+	log.Printf("GetAccount %s by user %s", id, userID)
+
+	// Invoke the action
+	result, err := c.actions.GetAccount(id)
+	if err != nil {
+		if errors.Is(err, entities.ErrNotFound) {
+			ErrNotFound(w, err)
+		} else {
+			ErrInternal(w, err)
+		}
+		return
+	}
+
+	// Success
+	Ok(w, result)
 }

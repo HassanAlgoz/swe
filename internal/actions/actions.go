@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/contexts/transfer"
+	"github.com/hassanalgoz/swe/internal/entities"
 )
 
 type Actions struct {
@@ -42,4 +43,15 @@ func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 		return err
 	}
 	return nil
+}
+
+// GetAccount retrieves an account by id
+// errors:
+// - ErrNotFound: account not found
+func (a *Actions) GetAccount(id uuid.UUID) (*entities.Account, error) {
+	acc, err := a.transferContext.GetAccount(a.ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return acc, nil
 }
