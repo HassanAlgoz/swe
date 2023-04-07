@@ -11,12 +11,12 @@ import (
 	"github.com/hassanalgoz/swe/internal/entities"
 )
 
-func (c *Controller) registerHandlers() {
+func (c *Server) registerHandlers() {
 	c.mux.HandleFunc("/actions:transfer-money", c.TransferMoney)
 	c.mux.HandleFunc("/actions:get-account", c.GetAccount)
 }
 
-func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
+func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method != "POST" {
@@ -131,7 +131,7 @@ func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	Ok(w, nil)
 }
 
-func (c *Controller) GetAccount(w http.ResponseWriter, r *http.Request) {
+func (c *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method != "POST" {

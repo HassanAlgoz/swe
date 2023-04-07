@@ -8,15 +8,15 @@ import (
 	"github.com/hassanalgoz/swe/internal/actions"
 )
 
-type Controller struct {
+type Server struct {
 	ctx     context.Context
-	mux     *http.ServeMux
 	actions actions.Actions
+	mux     *http.ServeMux
 }
 
-func NewController(ctx context.Context, acts actions.Actions) *Controller {
+func NewServer(ctx context.Context, acts actions.Actions) *Server {
 	mux := http.NewServeMux()
-	c := &Controller{
+	c := &Server{
 		mux:     mux,
 		ctx:     ctx,
 		actions: acts,
@@ -26,7 +26,7 @@ func NewController(ctx context.Context, acts actions.Actions) *Controller {
 }
 
 // Listen calls http.ListenAndServe
-func (c *Controller) Listen(addr string) error {
+func (c *Server) Listen(addr string) error {
 	log.Printf("Server listening on port %s", addr)
 	return http.ListenAndServe(addr, c.mux)
 }
