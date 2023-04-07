@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hassanalgoz/swe/internal/actions"
+	"github.com/hassanalgoz/swe/internal/inbound/http"
 )
 
 func main() {
@@ -28,15 +27,9 @@ func main() {
 	}
 	defer db.Close()
 
-	mux := http.NewServeMux()
-
 	act := actions.New(ctx, db)
-
-	registerHandlers(ctx, mux, act)
-
-	fmt.Println("Server listening on port 8080...")
-	err = http.ListenAndServe(":8080", mux)
-	if err != nil {
+	httpController := http.NewController(ctx, act)
+	if err = httpController.Listen(":8080"); err != nil {
 		panic(err)
 	}
 }
