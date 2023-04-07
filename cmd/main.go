@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hassanalgoz/swe/internal/actions"
+	"github.com/hassanalgoz/swe/internal/contexts/transfer"
 	"github.com/hassanalgoz/swe/internal/inbound/http"
 )
 
@@ -27,7 +28,13 @@ func main() {
 	}
 	defer db.Close()
 
-	act := actions.New(ctx, db)
+	transferContext := transfer.NewContext(db)
+
+	act := actions.New(
+		ctx,
+		transferContext,
+	)
+
 	httpController := http.NewController(ctx, act)
 	if err = httpController.Listen(":8080"); err != nil {
 		panic(err)

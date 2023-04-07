@@ -27,6 +27,6 @@ func NewController(ctx context.Context, acts actions.Actions) *Controller {
 
 // Listen calls http.ListenAndServe
 func (c *Controller) Listen(addr string) error {
-	log.Println("Server listening on port 8080...")
+	log.Printf("Server listening on port %s", addr)
 	return http.ListenAndServe(addr, c.mux)
 }

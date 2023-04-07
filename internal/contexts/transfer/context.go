@@ -9,22 +9,20 @@ import (
 	"github.com/hassanalgoz/swe/internal/entities"
 )
 
-type domainContext struct {
-	db  *sql.DB
-	ctx context.Context
+type DomainContext struct {
+	db *sql.DB
 }
 
-func NewContext(ctx context.Context, db *sql.DB) domainContext {
-	return domainContext{
-		ctx: ctx,
-		db:  db,
+func NewContext(db *sql.DB) DomainContext {
+	return DomainContext{
+		db: db,
 	}
 }
 
 // GetAccount
 // errors:
 // - ErrNotFound: account with given id is not found
-func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
+func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
 	account := &entities.Account{}
 	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed FROM accounts WHERE id = ?", id)
 	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.Freezed)
@@ -41,7 +39,7 @@ func (dc *domainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entitie
 // errors:
 // - ErrInvalidArgument: amount <= 0
 // - ErrInvalidState: either from- or to-account is freezed
-func (dc *domainContext) SaveTransfer(ctx context.Context, from, to *entities.Account, amount int64) error {
+func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *entities.Account, amount int64) error {
 	// Validate the field itself
 	if amount <= 0 {
 		return &entities.ErrInvalidArgument{

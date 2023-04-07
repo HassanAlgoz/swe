@@ -2,21 +2,23 @@ package actions
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/contexts/transfer"
 )
 
 type Actions struct {
-	ctx context.Context
-	db  *sql.DB
+	ctx             context.Context
+	transferContext transfer.DomainContext
 }
 
-func New(ctx context.Context, db *sql.DB) Actions {
+func New(
+	ctx context.Context,
+	transferContext transfer.DomainContext,
+) Actions {
 	return Actions{
-		ctx: ctx,
-		db:  db,
+		ctx:             ctx,
+		transferContext: transferContext,
 	}
 }
 
@@ -26,18 +28,16 @@ func New(ctx context.Context, db *sql.DB) Actions {
 // - ErrInvalidArgument: amount <= 0
 // - ErrInvalidState: either from- or to-account is freezed
 func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
-	transferContext := transfer.NewContext(a.ctx, a.db)
-
-	fromAccount, err := transferContext.GetAccount(a.ctx, from)
+	fromAccount, err := a.transferContext.GetAccount(a.ctx, from)
 	if err != nil {
 		return err
 	}
-	toAccount, err := transferContext.GetAccount(a.ctx, to)
+	toAccount, err := a.transferContext.GetAccount(a.ctx, to)
 	if err != nil {
 		return err
 	}
 
-	err = transferContext.SaveTransfer(a.ctx, fromAccount, toAccount, amount)
+	err = a.transferContext.SaveTransfer(a.ctx, fromAccount, toAccount, amount)
 	if err != nil {
 		return err
 	}
