@@ -108,25 +108,22 @@ func (c *Controller) TransferMoney(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log before dispatch
+	// pre-action Log
 	log.Printf("Transfer request from %s to %s for %d by user %s", from, to, amount, userID)
 
-	// Dispatch
+	// Invoke the action
 	err = c.actions.MoneyTransfer(from, to, amount)
 	if err != nil {
 		if errors.Is(err, entities.ErrNotFound) {
 			ErrNotFound(w, err)
-			return
 		} else if e, ok := err.(*entities.ErrInvalidArgument); ok {
 			ErrInvalidArgument(w, e)
-			return
 		} else if e, ok := err.(*entities.ErrInvalidState); ok {
 			ErrInvalidState(w, e)
-			return
 		} else {
 			ErrInternal(w, err)
-			return
 		}
+		return
 	}
 
 	// Success
