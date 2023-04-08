@@ -49,17 +49,19 @@ func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *entities.Ac
 	}
 
 	// Validate the state of persisted data
-
-	if isFreezed(from) {
+	yes, msg := isFreezed(from)
+	if yes {
 		return &entities.ErrInvalidState{
 			RelatedArgument: "from",
-			Message:         "account is freezed",
+			Message:         msg,
 		}
 	}
-	if isFreezed(to) {
+
+	yes, msg = isFreezed(from)
+	if yes {
 		return &entities.ErrInvalidState{
 			RelatedArgument: "to",
-			Message:         "account is freezed",
+			Message:         msg,
 		}
 	}
 

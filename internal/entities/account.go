@@ -19,3 +19,10 @@ type Account struct {
 	Currency     CurrencyCode
 	FreezedSince *time.Time
 }
+
+type Customer struct {
+	ID        uuid.UUID
+	Username  string
+	CreatedAt time.Time
+	Accounts  []Account
+}
