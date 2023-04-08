@@ -24,8 +24,8 @@ func NewContext(db *sql.DB) DomainContext {
 // - ErrNotFound: account with given id is not found
 func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
 	account := &entities.Account{}
-	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed FROM accounts WHERE id = ?", id)
-	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.Freezed)
+	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed_since FROM accounts WHERE id = ?", id)
+	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.FreezedSince)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("account id: %w", entities.ErrNotFound)
@@ -49,13 +49,14 @@ func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *entities.Ac
 	}
 
 	// Validate the state of persisted data
-	if from.Freezed {
+
+	if isFreezed(from) {
 		return &entities.ErrInvalidState{
 			RelatedArgument: "from",
 			Message:         "account is freezed",
 		}
 	}
-	if to.Freezed {
+	if isFreezed(to) {
 		return &entities.ErrInvalidState{
 			RelatedArgument: "to",
 			Message:         "account is freezed",
