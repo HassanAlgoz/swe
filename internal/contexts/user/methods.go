@@ -36,14 +36,15 @@ func (dc *domainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (enti
 // errors cases:
 // - len(newUsername) < 3
 // - new name matches current name
-func (dc *domainContext) ChangeName(ctx context.Context, userProfile entities.UserProfile, newUsername string) error {
+func (dc *domainContext) ChangeName(ctx context.Context, profile entities.UserProfile, newUsername string) error {
 	// Validate the field itself
-	if !validateUsername(newUsername) {
-		return fmt.Errorf(`invalid username: "%s"`, newUsername)
+
+	if yes, msg := isValidUsername(newUsername); yes {
+		return fmt.Errorf(`invalid username: "%s"`, msg)
 	}
 
 	// Validate field against persisted data
-	if newUsername == userProfile.Username {
+	if newUsername == profile.Username {
 		return fmt.Errorf("new name matches current name")
 	}
 
@@ -53,7 +54,7 @@ func (dc *domainContext) ChangeName(ctx context.Context, userProfile entities.Us
 	}
 	defer tx.Rollback()
 
-	res1, err := tx.ExecContext(ctx, "UPDATE user_profile SET username = ? WHERE id = ?", newUsername, userProfile.ID)
+	res1, err := tx.ExecContext(ctx, "UPDATE user_profile SET username = ? WHERE id = ?", newUsername, profile.ID)
 	if err != nil {
 		return err
 	}
