@@ -31,7 +31,10 @@ func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read request headers, parse, validate, ...etc.
-	userID := r.Header.Get("x-user-id")
+	headers := requireHeaders(w, r, []string{
+		"x-user-id",
+	})
+	userID := headers["x-user-id"]
 	// Parse, validate.....
 	if userID == "" {
 		userID = "default-user-id"
