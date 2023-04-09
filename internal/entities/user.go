@@ -1,6 +1,8 @@
 package entities
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type UserProfile struct {
 	ID       uuid.UUID

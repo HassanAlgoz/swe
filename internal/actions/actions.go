@@ -5,21 +5,25 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/contexts/transfer"
+	"github.com/hassanalgoz/swe/internal/contexts/user"
 	"github.com/hassanalgoz/swe/internal/entities"
 )
 
 type Actions struct {
 	ctx             context.Context
 	transferContext transfer.DomainContext
+	userContext     user.DomainContext
 }
 
 func New(
 	ctx context.Context,
 	transferContext transfer.DomainContext,
+	userContext user.DomainContext,
 ) Actions {
 	return Actions{
 		ctx:             ctx,
 		transferContext: transferContext,
+		userContext:     userContext,
 	}
 }
 
@@ -54,4 +58,20 @@ func (a *Actions) GetAccount(id uuid.UUID) (*entities.Account, error) {
 		return nil, err
 	}
 	return acc, nil
+}
+
+func (a *Actions) GetUsersProfilesByQuery(query string) ([]*entities.UserProfile, error) {
+	ids, err := a.userContext.Search(a.ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	var result []*entities.UserProfile
+	for i := range ids {
+		p, err := a.userContext.GetUserProfile(a.ctx, ids[i])
+		if err != nil {
+			continue
+		}
+		result = append(result, p)
+	}
+	return result, nil
 }

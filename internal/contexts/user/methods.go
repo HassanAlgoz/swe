@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/entities"
+	"github.com/hassanalgoz/swe/internal/outbound/search"
 )
 
 type NameChange struct {
@@ -14,20 +15,21 @@ type NameChange struct {
 	NewUsername string
 }
 
-type domainContext struct {
-	DB *sql.DB
+type DomainContext struct {
+	DB        *sql.DB
+	svcSearch search.SearchServiceClient
 }
 
-func NewContext(db *sql.DB) domainContext {
-	return domainContext{db}
+func NewContext(db *sql.DB, svcSearch search.SearchServiceClient) DomainContext {
+	return DomainContext{db, svcSearch}
 }
 
-func (dc *domainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (entities.UserProfile, error) {
-	var profile entities.UserProfile
+func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (*entities.UserProfile, error) {
+	var profile *entities.UserProfile
 	row := dc.DB.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
 	err := row.Scan(&profile.ID, &profile.Username)
 	if err != nil {
-		return profile, err
+		return nil, err
 	}
 	return profile, nil
 }
@@ -36,7 +38,7 @@ func (dc *domainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (enti
 // errors cases:
 // - len(newUsername) < 3
 // - new name matches current name
-func (dc *domainContext) ChangeName(ctx context.Context, profile entities.UserProfile, newUsername string) error {
+func (dc *DomainContext) ChangeName(ctx context.Context, profile entities.UserProfile, newUsername string) error {
 	// Validate the field itself
 
 	if yes, msg := isValidUsername(newUsername); yes {
@@ -71,4 +73,22 @@ func (dc *domainContext) ChangeName(ctx context.Context, profile entities.UserPr
 		return err
 	}
 	return nil
+}
+
+func (dc *DomainContext) Search(ctx context.Context, query string) ([]uuid.UUID, error) {
+	resp, err := dc.svcSearch.GetSearchResults(ctx, &search.SearchRequest{
+		Query: query,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var result []uuid.UUID
+	for _, r := range resp.GetResults() {
+		id, err := uuid.Parse(r.GetItemId())
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, id)
+	}
+	return result, nil
 }

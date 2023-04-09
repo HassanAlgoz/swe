@@ -10,9 +10,18 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hassanalgoz/swe/internal/actions"
 	"github.com/hassanalgoz/swe/internal/contexts/transfer"
+	"github.com/hassanalgoz/swe/internal/contexts/user"
 	"github.com/hassanalgoz/swe/internal/inbound/http"
 	"github.com/hassanalgoz/swe/internal/inbound/kafka"
+	"github.com/hassanalgoz/swe/internal/outbound/search"
+	"github.com/hassanalgoz/swe/pkg/config"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
+
+func init() {
+	config.SetupConfig()
+}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -32,12 +41,22 @@ func main() {
 	}
 	defer db.Close()
 
+	conn, err := grpc.Dial(viper.GetString("ports.search.address"), grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	svcSearch := search.NewSearchServiceClient(conn)
+
 	// Application Layer
 	transferContext := transfer.NewContext(db)
+
+	userContext := user.NewContext(db, svcSearch)
 
 	act := actions.New(
 		ctx,
 		transferContext,
+		userContext,
 	)
 
 	// Inbound
