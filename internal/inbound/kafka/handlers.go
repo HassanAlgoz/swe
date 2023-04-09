@@ -6,8 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (c *consumer) handle(key string, val string) {
-	switch key {
+func (c *consumer) handle(e Message) {
+	switch e.Type {
 	case "DoThis":
 		c.doThis()
 	case "DoThat":

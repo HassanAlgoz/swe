@@ -70,16 +70,13 @@ func (c *consumer) Start(done <-chan bool) {
 					fmt.Fprintf(os.Stderr, "%% Error storing offset after message %s:\n", e.TopicPartition)
 				}
 
-				var event struct {
-					Key string `json:"key"`
-					Val string `json:"val"`
-				}
-				err = json.Unmarshal(e.Value, &event)
+				var message Message
+				err = json.Unmarshal(e.Value, &message)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "%% Error unmarshalling event %s:\n", e.TopicPartition)
 					continue
 				}
-				c.handle(event.Key, event.Val)
+				c.handle(message)
 
 			case kafka.Error:
 				// Errors should generally be considered
