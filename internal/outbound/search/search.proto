@@ -1,9 +1,11 @@
 syntax = "proto3";
 
+package search;
+
+option go_package = "github.com/hassanalgoz/swe/internal/outbound/search";
+
 message SearchRequest {
   string query = 1;
-  int32 page_number = 2;
-  int32 result_per_page = 3;
 }
 
 message SearchResponse {
@@ -11,8 +13,7 @@ message SearchResponse {
 }
 
 message Result {
-  string url = 1;
-  string title = 2;
+  string item_id = 1;
 }
 
 service SearchService {
