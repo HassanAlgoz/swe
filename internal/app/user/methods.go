@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/outbound/database"
 )
 
 type NameChange struct {
@@ -15,16 +16,18 @@ type NameChange struct {
 }
 
 type DomainContext struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
-func NewContext(db *sql.DB) DomainContext {
-	return DomainContext{db}
+func NewContext() DomainContext {
+	return DomainContext{
+		db: database.Get(),
+	}
 }
 
 func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (common.UserProfile, error) {
 	var profile common.UserProfile
-	row := dc.DB.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
+	row := dc.db.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
 	err := row.Scan(&profile.ID, &profile.Username)
 	if err != nil {
 		return profile, err
@@ -48,7 +51,7 @@ func (dc *DomainContext) ChangeName(ctx context.Context, profile common.UserProf
 		return fmt.Errorf("new name matches current name")
 	}
 
-	tx, err := dc.DB.BeginTx(ctx, nil)
+	tx, err := dc.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}

@@ -7,15 +7,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/outbound/database"
 )
 
 type DomainContext struct {
 	db *sql.DB
 }
 
-func NewContext(db *sql.DB) DomainContext {
+func NewContext() DomainContext {
 	return DomainContext{
-		db: db,
+		db: database.Get(),
 	}
 }
 

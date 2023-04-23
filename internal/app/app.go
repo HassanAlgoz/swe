@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/app/transfer"
@@ -19,9 +18,8 @@ type App struct {
 
 func New(
 	ctx context.Context,
-	db *sql.DB,
 ) App {
-	transfer := transfer.NewContext(db)
+	transfer := transfer.NewContext()
 
 	return App{
 		ctx:      ctx,
