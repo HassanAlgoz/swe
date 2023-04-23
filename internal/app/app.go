@@ -7,19 +7,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/app/transfer"
 	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/outbound/metrics"
 )
 
-type Actions struct {
-	ctx      context.Context
+type App struct {
+	ctx context.Context
+
+	// Domain Contexts
 	transfer transfer.DomainContext
 }
 
 func New(
 	ctx context.Context,
 	db *sql.DB,
-) Actions {
+) App {
 	transfer := transfer.NewContext(db)
-	return Actions{
+
+	return App{
 		ctx:      ctx,
 		transfer: transfer,
 	}
@@ -30,7 +34,7 @@ func New(
 // - ErrNotFound: either from- or to-account not found
 // - ErrInvalidArgument: amount <= 0
 // - ErrInvalidState: either from- or to-account is freezed
-func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
+func (a *App) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 	fromAccount, err := a.transfer.GetAccount(a.ctx, from)
 	if err != nil {
 		return err
@@ -44,13 +48,14 @@ func (a *Actions) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 	if err != nil {
 		return err
 	}
+	metrics.MyCounter.Inc()
 	return nil
 }
 
 // GetAccount retrieves an account by id
 // errors:
 // - ErrNotFound: account not found
-func (a *Actions) GetAccount(id uuid.UUID) (*common.Account, error) {
+func (a *App) GetAccount(id uuid.UUID) (*common.Account, error) {
 	acc, err := a.transfer.GetAccount(a.ctx, id)
 	if err != nil {
 		return nil, err

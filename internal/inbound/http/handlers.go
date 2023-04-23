@@ -9,11 +9,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func (c *Server) registerHandlers() {
-	c.mux.HandleFunc("/actions:transfer-money", c.TransferMoney)
-	c.mux.HandleFunc("/actions:get-account", c.GetAccount)
+	// Prometheus Metrics
+	c.mux.Handle("/metrics", promhttp.Handler())
+
+	// Action handlers
+	c.mux.HandleFunc("/transfer:transfer-money", c.TransferMoney)
+	c.mux.HandleFunc("/user:get-account", c.GetAccount)
 }
 
 func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +121,7 @@ func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	log.Printf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, userID)
 
 	// Invoke the action
-	err = c.actions.MoneyTransfer(from, to, amount)
+	err = c.app.MoneyTransfer(from, to, amount)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)
@@ -218,7 +223,7 @@ func (c *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GetAccount %s by user %s", id, userID)
 
 	// Invoke the action
-	result, err := c.actions.GetAccount(id)
+	result, err := c.app.GetAccount(id)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)

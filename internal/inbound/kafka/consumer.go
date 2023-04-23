@@ -12,12 +12,12 @@ import (
 
 type consumer struct {
 	ctx      context.Context
-	actions  app.Actions
+	app      app.App
 	consumer *kafka.Consumer
 	topics   []string
 }
 
-func NewConsumer(ctx context.Context, acts app.Actions, bootstrapServers string, group string, topics []string) *consumer {
+func NewConsumer(ctx context.Context, acts app.App, bootstrapServers string, group string, topics []string) *consumer {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        bootstrapServers,
 		"broker.address.family":    "v4",
@@ -33,7 +33,7 @@ func NewConsumer(ctx context.Context, acts app.Actions, bootstrapServers string,
 	fmt.Printf("Created Consumer %v\n", c)
 	return &consumer{
 		ctx:      ctx,
-		actions:  acts,
+		app:      acts,
 		consumer: c,
 		topics:   topics,
 	}

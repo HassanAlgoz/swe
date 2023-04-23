@@ -9,17 +9,17 @@ import (
 )
 
 type Server struct {
-	ctx     context.Context
-	actions app.Actions
-	mux     *http.ServeMux
+	ctx context.Context
+	app app.App
+	mux *http.ServeMux
 }
 
-func NewServer(ctx context.Context, acts app.Actions) *Server {
+func NewServer(ctx context.Context, a app.App) *Server {
 	mux := http.NewServeMux()
 	c := &Server{
-		mux:     mux,
-		ctx:     ctx,
-		actions: acts,
+		mux: mux,
+		ctx: ctx,
+		app: a,
 	}
 	c.registerHandlers()
 	return c
