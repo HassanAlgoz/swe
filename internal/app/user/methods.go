@@ -6,24 +6,24 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/internal/entities"
+	"github.com/hassanalgoz/swe/internal/common"
 )
 
 type NameChange struct {
-	UserProfile entities.UserProfile
+	UserProfile common.UserProfile
 	NewUsername string
 }
 
-type domainContext struct {
+type DomainContext struct {
 	DB *sql.DB
 }
 
-func NewContext(db *sql.DB) domainContext {
-	return domainContext{db}
+func NewContext(db *sql.DB) DomainContext {
+	return DomainContext{db}
 }
 
-func (dc *domainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (entities.UserProfile, error) {
-	var profile entities.UserProfile
+func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (common.UserProfile, error) {
+	var profile common.UserProfile
 	row := dc.DB.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
 	err := row.Scan(&profile.ID, &profile.Username)
 	if err != nil {
@@ -36,7 +36,7 @@ func (dc *domainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (enti
 // errors cases:
 // - len(newUsername) < 3
 // - new name matches current name
-func (dc *domainContext) ChangeName(ctx context.Context, profile entities.UserProfile, newUsername string) error {
+func (dc *DomainContext) ChangeName(ctx context.Context, profile common.UserProfile, newUsername string) error {
 	// Validate the field itself
 
 	if yes, msg := isValidUsername(newUsername); yes {

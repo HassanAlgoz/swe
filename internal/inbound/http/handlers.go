@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/internal/entities"
+	"github.com/hassanalgoz/swe/internal/common"
 )
 
 func (c *Server) registerHandlers() {
@@ -118,11 +118,11 @@ func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	// Invoke the action
 	err = c.actions.MoneyTransfer(from, to, amount)
 	if err != nil {
-		if errors.Is(err, entities.ErrNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)
-		} else if e, ok := err.(*entities.ErrInvalidArgument); ok {
+		} else if e, ok := err.(*common.ErrInvalidArgument); ok {
 			ErrInvalidArgument(w, e)
-		} else if e, ok := err.(*entities.ErrInvalidState); ok {
+		} else if e, ok := err.(*common.ErrInvalidState); ok {
 			ErrInvalidState(w, e)
 		} else {
 			ErrInternal(w, err)
@@ -220,7 +220,7 @@ func (c *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	// Invoke the action
 	result, err := c.actions.GetAccount(id)
 	if err != nil {
-		if errors.Is(err, entities.ErrNotFound) {
+		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)
 		} else {
 			ErrInternal(w, err)

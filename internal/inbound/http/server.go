@@ -5,16 +5,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/hassanalgoz/swe/internal/actions"
+	"github.com/hassanalgoz/swe/internal/app"
 )
 
 type Server struct {
 	ctx     context.Context
-	actions actions.Actions
+	actions app.Actions
 	mux     *http.ServeMux
 }
 
-func NewServer(ctx context.Context, acts actions.Actions) *Server {
+func NewServer(ctx context.Context, acts app.Actions) *Server {
 	mux := http.NewServeMux()
 	c := &Server{
 		mux:     mux,

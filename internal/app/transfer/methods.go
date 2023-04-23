@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/internal/entities"
+	"github.com/hassanalgoz/swe/internal/common"
 )
 
 type DomainContext struct {
@@ -22,13 +22,13 @@ func NewContext(db *sql.DB) DomainContext {
 // GetAccount
 // errors:
 // - ErrNotFound: account with given id is not found
-func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
-	account := &entities.Account{}
+func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*common.Account, error) {
+	account := &common.Account{}
 	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed_since FROM accounts WHERE id = ?", id)
 	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.FreezedSince)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("account id: %w", entities.ErrNotFound)
+			return nil, fmt.Errorf("account id: %w", common.ErrNotFound)
 		}
 		return nil, err
 	}
@@ -39,10 +39,10 @@ func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*entitie
 // errors:
 // - ErrInvalidArgument: amount <= 0
 // - ErrInvalidState: either from- or to-account is freezed
-func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *entities.Account, amount int64) error {
+func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *common.Account, amount int64) error {
 	// Validate the field itself
 	if amount <= 0 {
-		return &entities.ErrInvalidArgument{
+		return &common.ErrInvalidArgument{
 			Argument: "amount",
 			Message:  fmt.Sprintf("expected: amount <= 0, got: %v", amount),
 		}
@@ -50,14 +50,14 @@ func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *entities.Ac
 
 	// Validate the state of persisted data
 	if yes, msg := isFreezed(from); yes {
-		return &entities.ErrInvalidState{
+		return &common.ErrInvalidState{
 			RelatedArgument: "from",
 			Message:         msg,
 		}
 	}
 
 	if yes, msg := isFreezed(from); yes {
-		return &entities.ErrInvalidState{
+		return &common.ErrInvalidState{
 			RelatedArgument: "to",
 			Message:         msg,
 		}

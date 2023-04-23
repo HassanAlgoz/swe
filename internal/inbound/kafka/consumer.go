@@ -7,17 +7,17 @@ import (
 	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hassanalgoz/swe/internal/actions"
+	"github.com/hassanalgoz/swe/internal/app"
 )
 
 type consumer struct {
 	ctx      context.Context
-	actions  actions.Actions
+	actions  app.Actions
 	consumer *kafka.Consumer
 	topics   []string
 }
 
-func NewConsumer(ctx context.Context, acts actions.Actions, bootstrapServers string, group string, topics []string) *consumer {
+func NewConsumer(ctx context.Context, acts app.Actions, bootstrapServers string, group string, topics []string) *consumer {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        bootstrapServers,
 		"broker.address.family":    "v4",

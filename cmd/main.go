@@ -8,8 +8,7 @@ import (
 	"os/signal"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hassanalgoz/swe/internal/actions"
-	"github.com/hassanalgoz/swe/internal/contexts/transfer"
+	"github.com/hassanalgoz/swe/internal/app"
 	"github.com/hassanalgoz/swe/internal/inbound/http"
 	"github.com/hassanalgoz/swe/internal/inbound/kafka"
 )
@@ -33,12 +32,7 @@ func main() {
 	defer db.Close()
 
 	// Application Layer
-	transferContext := transfer.NewContext(db)
-
-	act := actions.New(
-		ctx,
-		transferContext,
-	)
+	act := app.New(ctx, db)
 
 	// Inbound
 	kc := kafka.NewConsumer(ctx, act, "localhost:9001", "mygroup", []string{"topic1"})
