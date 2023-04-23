@@ -8,15 +8,18 @@ import (
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/common"
 	"github.com/hassanalgoz/swe/internal/outbound/database"
+	"github.com/hassanalgoz/swe/internal/outbound/grpc/search"
 )
 
 type DomainContext struct {
-	db *sql.DB
+	db     *sql.DB
+	search *search.Client
 }
 
 func NewContext() DomainContext {
 	return DomainContext{
-		db: database.Get(),
+		db:     database.Get(),
+		search: search.Get(),
 	}
 }
 

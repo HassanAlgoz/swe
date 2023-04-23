@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+  gen:
+    desc: Generate gRPC client and server stubs and protocol buffer files
+    run: |
+      cd outbound/grpc/proto && \
+      protoc --go_out=plugins=grpc:. --go-grpc_out=. *.proto && \
+      protoc --go_out=. *.proto
