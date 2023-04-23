@@ -10,6 +10,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
+	"github.com/spf13/viper"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -23,7 +24,7 @@ func Get() zerolog.Logger {
 		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 		zerolog.TimeFieldFormat = time.RFC3339Nano
 
-		logLevel, err := strconv.Atoi(os.Getenv("LOG_LEVEL"))
+		logLevel, err := strconv.Atoi(viper.GetString("logger.level"))
 		if err != nil {
 			logLevel = int(zerolog.InfoLevel) // default to INFO
 		}
@@ -33,9 +34,9 @@ func Get() zerolog.Logger {
 			TimeFormat: time.RFC3339,
 		}
 
-		if os.Getenv("APP_ENV") != "development" {
+		if viper.GetString("app.env") != "dev" {
 			fileLogger := &lumberjack.Logger{
-				Filename:   "/var/log/myapp/foo.log",
+				Filename:   viper.GetString("metrics.filepath"),
 				MaxSize:    500, // megabytes
 				MaxBackups: 3,
 				MaxAge:     28,   //days
