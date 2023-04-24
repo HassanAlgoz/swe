@@ -5,8 +5,8 @@ import "net/http"
 type FeatureFlag string
 
 const (
-	FeatureFlagMoneyTransfer FeatureFlag = "money_transfer"
-	FeatureFlagAnalytics     FeatureFlag = "analytics"
+	FeatureFlagMoneyTransfer FeatureFlag = "app.features.money_transfer"
+	FeatureFlagAnalytics     FeatureFlag = "app.features.tx_analytics"
 )
 
 type Header string
