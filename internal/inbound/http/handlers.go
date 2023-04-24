@@ -12,44 +12,32 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func (c *Server) registerHandlers() {
+func (s *Server) registerHandlers() {
 	// Prometheus Metrics
-	c.mux.Handle("/metrics", promhttp.Handler())
+	s.mux.Handle("/metrics", promhttp.Handler())
 
 	// Action handlers
-	c.mux.HandleFunc("/transfer:transfer-money", c.TransferMoney)
-	c.mux.HandleFunc("/user:get-account", c.GetAccount)
+	s.registerEndpoint([]string{http.MethodPost}, "/transfer:transfer-money", s.TransferMoney, &middlewareOptions{
+		RequiredFeatureFlags: []FeatureFlag{FeatureFlagMoneyTransfer},
+		RequiredHeaders:      []Header{HeaderAuthorization, HeaderRequestId},
+	})
+	s.registerEndpoint([]string{http.MethodGet}, "/user:get-account", s.GetAccount, &middlewareOptions{
+		RequiredHeaders: []Header{HeaderAuthorization},
+	})
 }
 
-func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
+func getUserId(token string) string {
+	// TODO: implement
+	return ""
+}
+
+func (s *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusMethodNotAllowed,
-				Message: "Method Not Allowed",
-			},
-		})
-		return
-	}
+	// Header
+	userID := getUserId(H(r, HeaderAuthorization))
 
-	// Read request headers, parse, validate, ...etc.
-	headers := requireHeaders(w, r, []string{
-		"x-user-id",
-	})
-	userID := headers["x-user-id"]
-	// Parse, validate.....
-	if userID == "" {
-		userID = "default-user-id"
-	}
-
-	// Apply rules based on headers...
-	// ...
-	// ...
-
-	// Parse body
+	// Body
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -121,7 +109,7 @@ func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	log.Printf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, userID)
 
 	// Invoke the action
-	err = c.app.MoneyTransfer(from, to, amount)
+	err = s.app.MoneyTransfer(from, to, amount)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)
@@ -139,32 +127,13 @@ func (c *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	Ok(w, nil)
 }
 
-func (c *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
+func (s *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusMethodNotAllowed,
-				Message: "Method Not Allowed",
-			},
-		})
-		return
-	}
+	// Header
+	userID := getUserId(r.Header.Get(string(HeaderAuthorization)))
 
-	// Read request headers, parse, validate, ...etc.
-	userID := r.Header.Get("x-user-id")
-	// Parse, validate.....
-	if userID == "" {
-		userID = "default-user-id"
-	}
-
-	// Apply rules based on headers...
-	// ...
-	// ...
-
-	// Parse body
+	// Body
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -223,7 +192,7 @@ func (c *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GetAccount %s by user %s", id, userID)
 
 	// Invoke the action
-	result, err := c.app.GetAccount(id)
+	result, err := s.app.GetAccount(id)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
 			ErrNotFound(w, err)

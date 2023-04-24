@@ -1,31 +1,22 @@
 package http
 
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+import "net/http"
+
+type FeatureFlag string
+
+const (
+	FeatureFlagMoneyTransfer FeatureFlag = "money_transfer"
+	FeatureFlagAnalytics     FeatureFlag = "analytics"
 )
 
-func requireHeaders(w http.ResponseWriter, r *http.Request, headers []string) map[string]string {
-	m := map[string]string{}
-	missing := []string{}
-	for i := range headers {
-		k := headers[i]
-		v := r.Header.Get(k)
-		if v == "" {
-			missing = append(missing, k)
-			continue
-		}
-		m[k] = v
-	}
-	if len(missing) > 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusBadRequest,
-				Message: fmt.Sprintf("Missing Headers: %v", missing),
-			},
-		})
-	}
-	return m
+type Header string
+
+const (
+	HeaderAuthorization Header = "Authorization"
+	HeaderRequestId     Header = "X-Request-Id"
+)
+
+// H is a type-safe replacement for r.Header.Get(key)
+func H(r *http.Request, key Header) string {
+	return r.Header.Get(string(key))
 }

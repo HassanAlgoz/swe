@@ -19,6 +19,7 @@ func main() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
+	viper.WatchConfig() // This makes feature flagging possible at runtime (see the middleware)
 
 	err := viper.ReadInConfig()
 	if err != nil {
