@@ -19,7 +19,7 @@ func (c *consumer) doThis() {
 	from := uuid.New()
 	to := uuid.New()
 	amount := int64(100_00)
-	err := c.actions.MoneyTransfer(from, to, amount)
+	err := c.app.MoneyTransfer(from, to, amount)
 	if err != nil {
 		log.Printf("%% Error: %v\n", err)
 	}

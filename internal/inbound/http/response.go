@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hassanalgoz/swe/internal/entities"
+	"github.com/hassanalgoz/swe/internal/common"
 )
 
 type LocationTypeEnum string
@@ -80,7 +80,7 @@ func ErrInternal(w http.ResponseWriter, err error) {
 }
 
 // ErrInvalidArgument 400
-func ErrInvalidArgument(w http.ResponseWriter, err *entities.ErrInvalidArgument) {
+func ErrInvalidArgument(w http.ResponseWriter, err *common.ErrInvalidArgument) {
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(Response{
 		Error: Error{
@@ -99,7 +99,7 @@ func ErrInvalidArgument(w http.ResponseWriter, err *entities.ErrInvalidArgument)
 }
 
 // ErrInvalidState 200
-func ErrInvalidState(w http.ResponseWriter, err *entities.ErrInvalidState) {
+func ErrInvalidState(w http.ResponseWriter, err *common.ErrInvalidState) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(Response{
 		Error: Error{

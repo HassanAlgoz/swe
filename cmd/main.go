@@ -2,21 +2,15 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/hassanalgoz/swe/internal/actions"
-	"github.com/hassanalgoz/swe/internal/contexts/transfer"
-	"github.com/hassanalgoz/swe/internal/contexts/user"
+	"github.com/hassanalgoz/swe/internal/app"
 	"github.com/hassanalgoz/swe/internal/inbound/http"
 	"github.com/hassanalgoz/swe/internal/inbound/kafka"
-	"github.com/hassanalgoz/swe/internal/outbound/search"
-	"github.com/hassanalgoz/swe/pkg/config"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 )
 
 func init() {
@@ -24,6 +18,18 @@ func init() {
 }
 
 func main() {
+	// Configs
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	viper.WatchConfig() // This makes feature flagging possible at runtime (see the middleware)
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error config file: %w", err))
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	cancelChan := make(chan os.Signal, 1)
 	signal.Notify(cancelChan, os.Interrupt)
@@ -34,37 +40,21 @@ func main() {
 		doneChan <- true
 	}()
 
-	// Outbound
-	db, err := sql.Open("mysql", "user:password@tcp(127.0.0.1:3306)/bank")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	conn, err := grpc.Dial(viper.GetString("ports.search.address"), grpc.WithInsecure())
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-	svcSearch := search.NewSearchServiceClient(conn)
-
 	// Application Layer
-	transferContext := transfer.NewContext(db)
-
-	userContext := user.NewContext(db, svcSearch)
-
-	act := actions.New(
-		ctx,
-		transferContext,
-		userContext,
-	)
+	act := app.New(ctx)
 
 	// Inbound
-	kc := kafka.NewConsumer(ctx, act, "localhost:9001", "mygroup", []string{"topic1"})
+	kc := kafka.NewConsumer(
+		ctx,
+		act,
+		strings.Join(viper.GetStringSlice("kafka.brokers"), ","),
+		viper.GetString("kafka.group"),
+		viper.GetStringSlice("kafka.topics"),
+	)
 	go kc.Start(doneChan)
 
 	httpServer := http.NewServer(ctx, act)
-	if err = httpServer.Listen(":8080"); err != nil {
+	if err := httpServer.Listen(fmt.Sprintf("%s:%s", viper.GetString("http.host"), viper.GetString("http.port"))); err != nil {
 		panic(err)
 	}
 }

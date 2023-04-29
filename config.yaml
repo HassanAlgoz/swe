@@ -1,0 +1,42 @@
+app:
+  env: dev
+  features:
+    money_transfer: true
+    tx_analytics: false
+  discount_eligibility_duration: 1800h # 6 months
+
+
+logger:
+  level: "debug"
+
+
+database:
+  host: "localhost"
+  port: 5432
+  username: "myuser"
+  password: "mypassword"
+  name: "mydb"
+
+
+http:
+  host: "localhost"
+  port: 8080
+
+
+kafka:
+  group: "mygroup"
+  topics:
+    - "topic1"
+  brokers:
+    - "localhost:9092"
+
+
+metrics:
+  filepath: "/var/log/myapp/foo.log"
+
+
+grpc:
+  search:
+    host: "localhost"
+    port: 50051
+

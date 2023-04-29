@@ -6,16 +6,22 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+<<<<<<< HEAD:internal/contexts/user/methods.go
 	"github.com/hassanalgoz/swe/internal/entities"
 	"github.com/hassanalgoz/swe/internal/outbound/search"
+=======
+	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/outbound/database"
+>>>>>>> 0b0bd21ff2d9b049103ec87d28cc967e581034a4:internal/app/user/methods.go
 )
 
 type NameChange struct {
-	UserProfile entities.UserProfile
+	UserProfile common.UserProfile
 	NewUsername string
 }
 
 type DomainContext struct {
+<<<<<<< HEAD:internal/contexts/user/methods.go
 	DB        *sql.DB
 	svcSearch search.SearchServiceClient
 }
@@ -27,6 +33,20 @@ func NewContext(db *sql.DB, svcSearch search.SearchServiceClient) DomainContext 
 func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (*entities.UserProfile, error) {
 	var profile *entities.UserProfile
 	row := dc.DB.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
+=======
+	db *sql.DB
+}
+
+func NewContext() DomainContext {
+	return DomainContext{
+		db: database.Get(),
+	}
+}
+
+func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (common.UserProfile, error) {
+	var profile common.UserProfile
+	row := dc.db.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
+>>>>>>> 0b0bd21ff2d9b049103ec87d28cc967e581034a4:internal/app/user/methods.go
 	err := row.Scan(&profile.ID, &profile.Username)
 	if err != nil {
 		return nil, err
@@ -38,7 +58,11 @@ func (dc *DomainContext) GetUserProfile(ctx context.Context, id uuid.UUID) (*ent
 // errors cases:
 // - len(newUsername) < 3
 // - new name matches current name
+<<<<<<< HEAD:internal/contexts/user/methods.go
 func (dc *DomainContext) ChangeName(ctx context.Context, profile entities.UserProfile, newUsername string) error {
+=======
+func (dc *DomainContext) ChangeName(ctx context.Context, profile common.UserProfile, newUsername string) error {
+>>>>>>> 0b0bd21ff2d9b049103ec87d28cc967e581034a4:internal/app/user/methods.go
 	// Validate the field itself
 
 	if yes, msg := isValidUsername(newUsername); yes {
@@ -50,7 +74,7 @@ func (dc *DomainContext) ChangeName(ctx context.Context, profile entities.UserPr
 		return fmt.Errorf("new name matches current name")
 	}
 
-	tx, err := dc.DB.BeginTx(ctx, nil)
+	tx, err := dc.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
