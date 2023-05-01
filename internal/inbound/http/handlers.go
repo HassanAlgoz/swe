@@ -26,11 +26,6 @@ func (s *Server) registerHandlers() {
 	})
 }
 
-func getUserId(token string) string {
-	// TODO: implement
-	return ""
-}
-
 func (s *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -195,80 +190,6 @@ func (s *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	result, err := s.app.GetAccount(id)
 	if err != nil {
 		if errors.Is(err, common.ErrNotFound) {
-			ErrNotFound(w, err)
-		} else {
-			ErrInternal(w, err)
-		}
-		return
-	}
-
-	// Success
-	Ok(w, result)
-}
-
-func (c *Server) GetUsersProfilesByQuery(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusMethodNotAllowed,
-				Message: "Method Not Allowed",
-			},
-		})
-		return
-	}
-
-	// Read request headers, parse, validate, ...etc.
-	userID := r.Header.Get("x-user-id")
-	// Parse, validate.....
-	if userID == "" {
-		userID = "default-user-id"
-	}
-
-	// Apply rules based on headers...
-	// ...
-	// ...
-
-	// Parse body
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusBadRequest,
-				Message: "Invalid request body",
-			},
-		})
-		return
-	}
-
-	// Parse body.json
-	var fields struct {
-		Query string `json:"query"`
-	}
-	err = json.Unmarshal(body, &fields)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{
-			Error: Error{
-				Code:    http.StatusBadRequest,
-				Message: "Invalid json",
-			},
-		})
-		return
-	}
-
-	query := fields.Query
-
-	// pre-action Log
-	log.Printf("GetUsersProfilesByQuery %s by user %s", query, userID)
-
-	// Invoke the action
-	result, err := c.actions.GetUsersProfilesByQuery(query)
-	if err != nil {
-		if errors.Is(err, entities.ErrNotFound) {
 			ErrNotFound(w, err)
 		} else {
 			ErrInternal(w, err)

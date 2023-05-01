@@ -20,3 +20,8 @@ const (
 func H(r *http.Request, key Header) string {
 	return r.Header.Get(string(key))
 }
+
+func getUserId(token string) string {
+	// TODO: implement
+	return ""
+}

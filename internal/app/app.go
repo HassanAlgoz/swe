@@ -10,16 +10,14 @@ import (
 )
 
 type App struct {
-	ctx context.Context
-
-	// Domain Contexts
-	transfer transfer.DomainContext
+	ctx      context.Context
+	transfer transfer.Subdomain
 }
 
 func New(
 	ctx context.Context,
 ) App {
-	transfer := transfer.NewContext()
+	transfer := transfer.New()
 
 	return App{
 		ctx:      ctx,

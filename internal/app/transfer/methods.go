@@ -11,13 +11,13 @@ import (
 	"github.com/hassanalgoz/swe/internal/outbound/grpc/search"
 )
 
-type DomainContext struct {
+type Subdomain struct {
 	db     *sql.DB
 	search *search.Client
 }
 
-func NewContext() DomainContext {
-	return DomainContext{
+func New() Subdomain {
+	return Subdomain{
 		db:     database.Get(),
 		search: search.Get(),
 	}
@@ -26,9 +26,9 @@ func NewContext() DomainContext {
 // GetAccount
 // errors:
 // - ErrNotFound: account with given id is not found
-func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*common.Account, error) {
+func (s *Subdomain) GetAccount(ctx context.Context, id uuid.UUID) (*common.Account, error) {
 	account := &common.Account{}
-	row := dc.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed_since FROM accounts WHERE id = ?", id)
+	row := s.db.QueryRowContext(ctx, "SELECT id, name, email, currency, freezed_since FROM accounts WHERE id = ?", id)
 	err := row.Scan(&account.ID, &account.Name, &account.Email, &account.Currency, &account.FreezedSince)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -43,7 +43,7 @@ func (dc *DomainContext) GetAccount(ctx context.Context, id uuid.UUID) (*common.
 // errors:
 // - ErrInvalidArgument: amount <= 0
 // - ErrInvalidState: either from- or to-account is freezed
-func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *common.Account, amount int64) error {
+func (s *Subdomain) SaveTransfer(ctx context.Context, from, to *common.Account, amount int64) error {
 	// Validate the field itself
 	if amount <= 0 {
 		return &common.ErrInvalidArgument{
@@ -67,7 +67,7 @@ func (dc *DomainContext) SaveTransfer(ctx context.Context, from, to *common.Acco
 		}
 	}
 
-	tx, err := dc.db.BeginTx(ctx, nil)
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
