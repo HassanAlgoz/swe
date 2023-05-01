@@ -9,7 +9,6 @@ import (
 	"github.com/hassanalgoz/swe/internal/common"
 	"github.com/hassanalgoz/swe/internal/outbound/database"
 	"github.com/hassanalgoz/swe/internal/outbound/grpc/search"
-	pbSearch "github.com/hassanalgoz/swe/internal/outbound/grpc/search/pb"
 )
 
 type Subdomain struct {
@@ -76,7 +75,7 @@ func (s *Subdomain) ChangeName(ctx context.Context, profile common.UserProfile, 
 }
 
 func (s *Subdomain) Search(ctx context.Context, query string) ([]common.SearchResult, error) {
-	results, err := s.search.GetSearchResults(ctx, &pbSearch.SearchRequest{
+	results, err := s.search.GetSearchResults(ctx, &search.SearchRequest{
 		Query: query,
 	})
 	if err != nil {

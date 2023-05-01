@@ -4,8 +4,8 @@ tasks:
   gen:
     desc: Generate gRPC client and server stubs and protocol buffer files
     generates:
-      - ./internal/outbound/grpc/pb/**/*.pb.go
+      - ./internal/outbound/grpc/**/*.pb.go
     cmds:
-      - protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./internal/outbound/grpc/proto/search.proto
-      - mv ./internal/outbound/grpc/proto/search{,_grpc}.pb.go ./internal/outbound/grpc/search/pb/
+      - protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./api/search.proto
+      - mv ./api/search{,_grpc}.pb.go ./internal/outbound/grpc/search/
       
