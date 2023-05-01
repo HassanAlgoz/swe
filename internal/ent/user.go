@@ -1,4 +1,4 @@
-package common
+package ent
 
 import (
 	"github.com/google/uuid"

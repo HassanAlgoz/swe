@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/ent"
 	"github.com/hassanalgoz/swe/internal/outbound/logger"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -49,16 +49,16 @@ func Get() *Client {
 	// only executed once, regardless of how many times the `Get()` function is called.
 }
 
-func (c *Client) GetSearchResults(ctx context.Context, req *SearchRequest) ([]common.SearchResult, error) {
+func (c *Client) GetSearchResults(ctx context.Context, req *SearchRequest) ([]ent.SearchResult, error) {
 	resp, err := c.client.GetSearchResults(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	// map to domain entity
 	results1 := resp.GetResults()
-	results2 := make([]common.SearchResult, len(results1))
+	results2 := make([]ent.SearchResult, len(results1))
 	for i := range results1 {
-		results2[i] = common.SearchResult{
+		results2[i] = ent.SearchResult{
 			Title: results1[i].GetTitle(),
 			URL:   results1[i].GetUrl(),
 		}
@@ -68,10 +68,10 @@ func (c *Client) GetSearchResults(ctx context.Context, req *SearchRequest) ([]co
 	//
 	// this code implements the **Adapter** design pattern
 	//
-	// The `GetSearchResults` method adapts the `resp` object returned from `c.client.GetSearchResults` method to a new object of type `[]common.SearchResult`.
-	// It achieves this by mapping the properties of the objects returned by the external service to a new object of the required type `common.SearchResult`.
+	// The `GetSearchResults` method adapts the `resp` object returned from `c.client.GetSearchResults` method to a new object of type `[]ent.SearchResult`.
+	// It achieves this by mapping the properties of the objects returned by the external service to a new object of the required type `ent.SearchResult`.
 	//
 	// This pattern is often used in situations where you have an existing interface that is not compatible with the interface required by the client,
 	// and you need to create an adapter that acts as a bridge between the two interfaces. In this case, the external service is returning a response that is
-	// not directly compatible with the `common.SearchResult` type used in the client code, and the adapter method maps the response to the desired type.
+	// not directly compatible with the `ent.SearchResult` type used in the client code, and the adapter method maps the response to the desired type.
 }

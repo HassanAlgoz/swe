@@ -1,4 +1,4 @@
-package common
+package ent
 
 type SearchResult struct {
 	URL   string

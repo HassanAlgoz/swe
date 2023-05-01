@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/ent"
 	"github.com/hassanalgoz/swe/internal/outbound/database"
 	"github.com/hassanalgoz/swe/internal/outbound/grpc/search"
 )
@@ -23,8 +23,8 @@ func New() Subdomain {
 	}
 }
 
-func (s *Subdomain) GetUserProfile(ctx context.Context, id uuid.UUID) (*common.UserProfile, error) {
-	var profile *common.UserProfile
+func (s *Subdomain) GetUserProfile(ctx context.Context, id uuid.UUID) (*ent.UserProfile, error) {
+	var profile *ent.UserProfile
 	row := s.db.QueryRowContext(ctx, "SELECT id, username FROM user_profile WHERE id = ?", id)
 	err := row.Scan(&profile.ID, &profile.Username)
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *Subdomain) GetUserProfile(ctx context.Context, id uuid.UUID) (*common.U
 // errors cases:
 // - len(newUsername) < 3
 // - new name matches current name
-func (s *Subdomain) ChangeName(ctx context.Context, profile common.UserProfile, newUsername string) error {
+func (s *Subdomain) ChangeName(ctx context.Context, profile ent.UserProfile, newUsername string) error {
 	// Validate the field itself
 
 	if yes, msg := isValidUsername(newUsername); !yes {
@@ -74,7 +74,7 @@ func (s *Subdomain) ChangeName(ctx context.Context, profile common.UserProfile, 
 	return nil
 }
 
-func (s *Subdomain) Search(ctx context.Context, query string) ([]common.SearchResult, error) {
+func (s *Subdomain) Search(ctx context.Context, query string) ([]ent.SearchResult, error) {
 	results, err := s.search.GetSearchResults(ctx, &search.SearchRequest{
 		Query: query,
 	})

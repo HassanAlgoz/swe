@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/ent"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -106,11 +106,11 @@ func (s *Server) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	// Invoke the action
 	err = s.app.MoneyTransfer(from, to, amount)
 	if err != nil {
-		if errors.Is(err, common.ErrNotFound) {
+		if errors.Is(err, ent.ErrNotFound) {
 			ErrNotFound(w, err)
-		} else if e, ok := err.(*common.ErrInvalidArgument); ok {
+		} else if e, ok := err.(*ent.ErrInvalidArgument); ok {
 			ErrInvalidArgument(w, e)
-		} else if e, ok := err.(*common.ErrInvalidState); ok {
+		} else if e, ok := err.(*ent.ErrInvalidState); ok {
 			ErrInvalidState(w, e)
 		} else {
 			ErrInternal(w, err)
@@ -189,7 +189,7 @@ func (s *Server) GetAccount(w http.ResponseWriter, r *http.Request) {
 	// Invoke the action
 	result, err := s.app.GetAccount(id)
 	if err != nil {
-		if errors.Is(err, common.ErrNotFound) {
+		if errors.Is(err, ent.ErrNotFound) {
 			ErrNotFound(w, err)
 		} else {
 			ErrInternal(w, err)

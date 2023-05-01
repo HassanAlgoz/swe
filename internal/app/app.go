@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/app/transfer"
-	"github.com/hassanalgoz/swe/internal/common"
+	"github.com/hassanalgoz/swe/internal/ent"
 	"github.com/hassanalgoz/swe/internal/outbound/metrics"
 )
 
@@ -40,7 +40,7 @@ func (a *App) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 		return err
 	}
 
-	err = a.transfer.SaveTransfer(a.ctx, fromAccount, toAccount, amount)
+	err = a.transfer.ExecuteTransfer(a.ctx, fromAccount, toAccount, amount)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (a *App) MoneyTransfer(from, to uuid.UUID, amount int64) error {
 // GetAccount retrieves an account by id
 // errors:
 // - ErrNotFound: account not found
-func (a *App) GetAccount(id uuid.UUID) (*common.Account, error) {
+func (a *App) GetAccount(id uuid.UUID) (*ent.Account, error) {
 	acc, err := a.transfer.GetAccount(a.ctx, id)
 	if err != nil {
 		return nil, err

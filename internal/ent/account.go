@@ -1,4 +1,4 @@
-package common
+package ent
 
 import (
 	"time"
