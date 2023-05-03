@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var configPath = "etc/app/"
+var configPath = "etc/"
 
 func SetupConfig() {
 	viper.SetConfigType("yaml")

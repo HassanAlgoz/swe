@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package notify;
+
+service Notifications {
+  rpc SendNotification(NotificationRequest) returns (NotificationResponse) {}
+  rpc GetNotificationsByRecipientsIds(RecipientIdsRequest) returns (NotificationsResponse) {}
+}
+
+message NotificationRequest {
+  string message = 1;
+  repeated string recipients = 2;
+}
+
+message RecipientIdsRequest {
+  repeated string recipient_ids = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message Notification {
+  int64 id = 1;
+  string message = 2;
+  repeated string recipients = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message NotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_page_token = 2;
+}

@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package lms;
+
+option go_package = "github.com/hassanalgoz/swe/micro/lms/service";
+
+service LMS {
+  rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse) {}
+  rpc GetCourse(GetCourseRequest) returns (GetCourseResponse) {}
+  rpc UpdateCourse(UpdateCourseRequest) returns (UpdateCourseResponse) {}
+  rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse) {}
+
+  rpc CreateStudent(CreateStudentRequest) returns (CreateStudentResponse) {}
+  rpc GetStudent(GetStudentRequest) returns (GetStudentResponse) {}
+  rpc UpdateStudent(UpdateStudentRequest) returns (UpdateStudentResponse) {}
+  rpc DeleteStudent(DeleteStudentRequest) returns (DeleteStudentResponse) {}
+  
+  rpc CreateEnrollment(CreateEnrollmentRequest) returns (CreateEnrollmentResponse) {}
+}
+
+
+message Course {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string instructors = 4;
+  repeated string students = 5;
+}
+
+message CourseList {
+  repeated Course courses = 1;
+}
+
+message CreateCourseRequest {
+  string name = 1;
+  string description = 2;
+  repeated string instructors = 3;
+}
+
+message CreateCourseResponse {
+  Course course = 1;
+}
+
+message GetCourseRequest {
+  string id = 1;
+}
+
+message GetCourseResponse {
+  Course course = 1;
+}
+
+message UpdateCourseRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string instructors = 4;
+}
+
+message UpdateCourseResponse {
+  Course course = 1;
+}
+
+message DeleteCourseRequest {
+  string id = 1;
+}
+
+message DeleteCourseResponse {
+}
+
+message Student {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  repeated string courses = 4;
+}
+
+message StudentList {
+  repeated Student students = 1;
+}
+
+message CreateStudentRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message CreateStudentResponse {
+  Student student = 1;
+}
+
+message GetStudentRequest {
+  string id = 1;
+}
+
+message GetStudentResponse {
+  Student student = 1;
+}
+
+message UpdateStudentRequest {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UpdateStudentResponse {
+  Student student = 1;
+}
+
+message DeleteStudentRequest {
+  string id = 1;
+}
+
+message DeleteStudentResponse {
+}
+
+message Enrollment {
+  string id = 1;
+  string courseId = 2;
+  string studentId = 3;
+}
+
+message EnrollmentList {
+  repeated Enrollment enrollments = 1;
+}
+
+message CreateEnrollmentRequest {
+  string courseId = 1;
+  string studentId = 2;
+}
+
+message CreateEnrollmentResponse {
+  Enrollment enrollment = 1;
+}

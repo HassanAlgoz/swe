@@ -10,6 +10,7 @@ import (
 	"github.com/hassanalgoz/swe/internal/app"
 	"github.com/hassanalgoz/swe/internal/inbound/http"
 	"github.com/hassanalgoz/swe/internal/inbound/kafka"
+	"github.com/hassanalgoz/swe/pkg/config"
 	"github.com/spf13/viper"
 )
 
