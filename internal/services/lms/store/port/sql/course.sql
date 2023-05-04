@@ -13,5 +13,5 @@ SELECT * FROM course WHERE id = $1;
 -- name: UpdateCourseById :exec
 UPDATE course SET name = $2, description = $3 WHERE id = $1;
 
--- name: DeleteCourse :execrows
+-- name: DeleteCourse :exec
 DELETE FROM course WHERE id = $1;

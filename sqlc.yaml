@@ -2,15 +2,15 @@ version: "2"
 sql:
   - engine: "postgresql"
     queries:
-      - "micro/lms/app/store/sql/student.sql"
-      - "micro/lms/app/store/sql/course.sql"
+      - "internal/services/lms/store/port/sql/student.sql"
+      - "internal/services/lms/store/port/sql/course.sql"
     schema:
-      - "micro/lms/app/store/sql/student.sql"
-      - "micro/lms/app/store/sql/course.sql"
+      - "internal/services/lms/store/port/sql/student.sql"
+      - "internal/services/lms/store/port/sql/course.sql"
     gen:
       go:
         package: "store"
-        out: "micro/lms/app/store"
+        out: "internal/services/lms/store/port"
         emit_json_tags: true
         emit_empty_slices: true
         emit_enum_valid_method: true
@@ -19,3 +19,4 @@ sql:
         output_models_file_name: models.go
         emit_interface: true
         output_querier_file_name: querier.go
+        emit_result_struct_pointers: true
