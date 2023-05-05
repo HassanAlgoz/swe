@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"github.com/hassanalgoz/swe/pkg/entities"
+	"github.com/spf13/viper"
 )
 
-var requiredCourseNameLength = 3
+var requiredCourseNameLength = viper.GetInt("app.rules.required_course_name_length")
 
 func isValidCourseName(name string) *entities.ErrInvalidArgument {
 	if len(name) < requiredCourseNameLength {

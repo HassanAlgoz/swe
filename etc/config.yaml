@@ -3,7 +3,9 @@ app:
   features:
     money_transfer: true
     tx_analytics: false
-  discount_eligibility_duration: 1800h # 6 months
+  rules:
+    discount_eligibility_duration: 1800h # 6 months
+    required_course_name_length: 3
 
 
 logger:
