@@ -1,9 +1,9 @@
-package service
+package port
 
 import (
 	"net/http"
 
-	inbound "github.com/hassanalgoz/swe/pkg/adapters/inbound/http"
+	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/http"
 )
 
 type endpointOptions struct {
@@ -22,7 +22,7 @@ func (s *service) registerEndpoint(methods []string, pattern string, handlerFunc
 	}
 	mws := []inbound.Middleware{
 		inbound.WithMetrics(),
-		inbound.WithLogging(s.logger),
+		inbound.WithLogging(),
 		inbound.WithRequestDeduplication(),
 		inbound.WithRequestMethodAndHeaderAssertion(
 			methods,

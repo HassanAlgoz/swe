@@ -1,4 +1,4 @@
-package service
+package port
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	inbound "github.com/hassanalgoz/swe/pkg/adapters/inbound/http"
+	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/http"
 	lmsPort "github.com/hassanalgoz/swe/ports/services/lms"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc/status"
@@ -112,7 +112,7 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// pre-action Log
-	log.Printf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, reqID)
+	log.Debug().Msgf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, reqID)
 
 	// Invoke the action
 	id, err := lmsClient.CreateCourse(s.ctx, &lmsPort.CreateCourseRequest{
@@ -129,7 +129,7 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 				Data: statusErr.Message(),
 			})
 		} else {
-			log.Printf("Error while calling CreateCourse RPC: %v", err)
+			log.Error().Msgf("Error while calling CreateCourse RPC: %v", err)
 			inbound.ErrInternal(w, err)
 		}
 		return

@@ -1,4 +1,4 @@
-package service
+package port
 
 import (
 	"context"
@@ -6,13 +6,11 @@ import (
 
 	"github.com/hassanalgoz/swe/pkg/adapters/services/lms"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
-	"github.com/rs/zerolog"
 )
 
 type service struct {
-	ctx    context.Context
-	mux    *http.ServeMux
-	logger zerolog.Logger
+	ctx context.Context
+	mux *http.ServeMux
 }
 
 var lmsClient = lms.Singleton()
@@ -20,9 +18,8 @@ var log = logger.Singleton()
 
 func NewServer(ctx context.Context) *service {
 	c := &service{
-		ctx:    ctx,
-		mux:    http.NewServeMux(),
-		logger: log,
+		ctx: ctx,
+		mux: http.NewServeMux(),
 	}
 	c.registerHandlers()
 	return c
