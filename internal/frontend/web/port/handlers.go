@@ -7,9 +7,12 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	grpcInbound "github.com/hassanalgoz/swe/pkg/ports/inbound/grpc"
 	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/http"
 	lmsPort "github.com/hassanalgoz/swe/ports/services/lms"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -30,14 +33,26 @@ func (s *service) registerHandlers() {
 func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Header
-	reqID, err := inbound.ExtractRequestId(r)
+	// Headers
+	authToken, err := inbound.GetAuthToken(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(inbound.Response{
 			Error: inbound.Error{
 				Code:    http.StatusBadRequest,
 				Message: fmt.Sprintf("Invalid request header: %v", err),
+			},
+		})
+		return
+	}
+
+	reqID, ok := inbound.GetRequestId(r)
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(inbound.Response{
+			Error: inbound.Error{
+				Code:    http.StatusBadRequest,
+				Message: fmt.Sprintf("Missing request header: %s", inbound.HeaderRequestId),
 			},
 		})
 		return
@@ -113,6 +128,13 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 
 	// pre-action Log
 	log.Debug().Msgf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, reqID)
+
+	// Embed http headers as gRPC headers
+	md := metadata.New(map[string]string{
+		string(grpcInbound.HeaderUserId):    authToken,
+		string(grpcInbound.HeaderRequestId): reqID,
+	})
+	grpc.SendHeader(s.ctx, md)
 
 	// Invoke the action
 	id, err := lmsClient.CreateCourse(s.ctx, &lmsPort.CreateCourseRequest{
