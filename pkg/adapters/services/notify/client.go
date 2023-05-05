@@ -1,19 +1,18 @@
-package lms
+package notify
 
 import (
 	"context"
 	"fmt"
 	"sync"
 
-	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
-	port "github.com/hassanalgoz/swe/ports/services/lms"
+	port "github.com/hassanalgoz/swe/ports/services/notify"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
 type Adapter struct {
-	port port.LMSClient
+	port port.NotificationsClient
 }
 
 var (
@@ -32,7 +31,7 @@ func Singleton() *Adapter {
 			return
 		}
 		instance = &Adapter{
-			port: port.NewLMSClient(conn),
+			port: port.NewNotificationsClient(conn),
 		}
 	})
 	if err != nil {
@@ -41,11 +40,10 @@ func Singleton() *Adapter {
 	return instance
 }
 
-func (a *Adapter) CreateCourse(ctx context.Context, req *port.CreateCourseRequest) (*uuid.UUID, error) {
-	resp, err := a.port.CreateCourse(ctx, req)
+func (a *Adapter) SendNotification(ctx context.Context, req *port.NotificationRequest) error {
+	_, err := a.port.SendNotification(ctx, req)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	id := uuid.MustParse(resp.Id)
-	return &id, nil
+	return nil
 }

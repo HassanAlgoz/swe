@@ -1,9 +1,9 @@
-package http
+package service
 
 import (
 	"net/http"
 
-	inbound "github.com/hassanalgoz/swe/pkg/inbound/http"
+	inbound "github.com/hassanalgoz/swe/pkg/adapters/inbound/http"
 )
 
 type endpointOptions struct {

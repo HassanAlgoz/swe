@@ -1,9 +1,13 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 package notify;
 
+option go_package = "github.com/hassanalgoz/swe/ports/services/notify";
+
 service Notifications {
-  rpc SendNotification(NotificationRequest) returns (NotificationResponse) {}
+  rpc SendNotification(NotificationRequest) returns (NotificationsResponse) {}
   rpc GetNotificationsByRecipientsIds(RecipientIdsRequest) returns (NotificationsResponse) {}
 }
 

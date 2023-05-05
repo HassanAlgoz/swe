@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package lms;
 
-option go_package = "github.com/hassanalgoz/swe/micro/lms/service";
+option go_package = "github.com/hassanalgoz/swe/ports/services/lms";
 
 service LMS {
   rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse) {}
@@ -38,7 +38,7 @@ message CreateCourseRequest {
 }
 
 message CreateCourseResponse {
-  Course course = 1;
+  string id = 1;
 }
 
 message GetCourseRequest {

@@ -1,17 +1,16 @@
-package http
+package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/pkg/entities"
-	inbound "github.com/hassanalgoz/swe/pkg/inbound/http"
+	inbound "github.com/hassanalgoz/swe/pkg/adapters/inbound/http"
+	lmsPort "github.com/hassanalgoz/swe/ports/services/lms"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc/status"
 )
 
 func (s *service) registerHandlers() {
@@ -116,20 +115,28 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 	log.Printf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, reqID)
 
 	// Invoke the action
-	err = s.app.MoneyTransfer(from, to, amount)
+	id, err := lmsClient.CreateCourse(s.ctx, &lmsPort.CreateCourseRequest{
+		Name:        from.String(),
+		Description: "asdf asdf",
+		Instructors: []string{"vczxcv", "123asdf"},
+	})
 	if err != nil {
-		if errors.Is(err, entities.ErrNotFound) {
-			inbound.ErrNotFound(w, err)
-		} else if e, ok := err.(*entities.ErrInvalidArgument); ok {
-			inbound.ErrInvalidArgument(w, e)
-		} else if e, ok := err.(*entities.ErrInvalidState); ok {
-			inbound.ErrInvalidState(w, e)
+		statusErr, ok := status.FromError(err)
+		if ok {
+			statusCode := HTTPStatusFromCode(statusErr.Code())
+			w.WriteHeader(statusCode)
+			json.NewEncoder(w).Encode(inbound.Response{
+				Data: statusErr.Message(),
+			})
 		} else {
+			log.Printf("Error while calling CreateCourse RPC: %v", err)
 			inbound.ErrInternal(w, err)
 		}
 		return
 	}
 
 	// Success
-	inbound.Ok(w, nil)
+	inbound.Ok(w, map[string]any{
+		"id": id.String(),
+	})
 }
