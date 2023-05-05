@@ -1,2 +1,2 @@
 *.pb*
-**/port/*.go
+**/store/port/*.go

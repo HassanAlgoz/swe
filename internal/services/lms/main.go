@@ -3,7 +3,7 @@ package main
 import (
 	"net"
 
-	"github.com/hassanalgoz/swe/internal/services/lms/view"
+	"github.com/hassanalgoz/swe/internal/services/lms/port"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
 	"google.golang.org/grpc"
 )
@@ -13,7 +13,7 @@ var log = logger.Singleton()
 func main() {
 	// Initialize
 	server := grpc.NewServer()
-	view.Register(server)
+	port.Register(server)
 
 	// Listen and serve
 	lis, err := net.Listen("tcp", ":8080")

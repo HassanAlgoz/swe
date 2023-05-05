@@ -34,7 +34,7 @@ func Singleton() *Controller {
 
 func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (*uuid.UUID, error) {
 	// (may also call other services)
-	if err := isValidCourse(&course); err != nil {
+	if err := isValidCourseName(course.Name); err != nil {
 		return nil, err
 	}
 	id := uuid.New()
