@@ -41,9 +41,22 @@ func Singleton() *Controller {
 	return instance
 }
 
+func (c *Controller) GetCourseById(ctx context.Context, id uuid.UUID) (*entities.Course, error) {
+	course, err := c.store.GetCourseById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return course, nil
+}
+
 func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (*uuid.UUID, error) {
-	// (may also call other services)
+	// Validate course name
 	if err := validateCourseName(course.Name); err != nil {
+		return nil, err
+	}
+
+	// Validate course description
+	if err := validateCourseDescription(course.Description); err != nil {
 		return nil, err
 	}
 
@@ -126,6 +139,14 @@ func (c *Controller) UpdateCourse(ctx context.Context, id uuid.UUID, update enti
 			Name: update.Name,
 		})
 	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Controller) DeleteCourse(ctx context.Context, id uuid.UUID) error {
+	err := c.store.DeleteCourse(ctx, id)
 	if err != nil {
 		return err
 	}
