@@ -37,8 +37,13 @@ metrics:
   filepath: "/var/log/myapp/foo.log"
 
 
-grpc:
-  search:
+services:
+  lms:
     host: "localhost"
     port: 50051
+
+
+s3:
+  client:
+    max_retries: 5
 

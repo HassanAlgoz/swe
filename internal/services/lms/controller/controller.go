@@ -1,15 +1,18 @@
 package controller
 
 import (
+	"bytes"
 	"context"
 	"sync"
 
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/services/lms/store"
-	storePort "github.com/hassanalgoz/swe/internal/services/lms/store/port"
+	StorePort "github.com/hassanalgoz/swe/internal/services/lms/store/port"
 	"github.com/hassanalgoz/swe/pkg/adapters/services/notify"
 	"github.com/hassanalgoz/swe/pkg/entities"
-	notifyPort "github.com/hassanalgoz/swe/ports/services/notify"
+	S3Client "github.com/hassanalgoz/swe/pkg/outbound/s3"
+	NotifyPort "github.com/hassanalgoz/swe/ports/services/notify"
 )
 
 type Controller struct {
@@ -22,6 +25,12 @@ var (
 )
 
 var notifyClient = notify.Singleton()
+
+var (
+	s3Client     = S3Client.Singleton()
+	s3BucketName = "test-bucket"
+	s3ObjectKey  = "test-object"
+)
 
 func Singleton() *Controller {
 	once.Do(func() {
@@ -37,8 +46,10 @@ func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (
 	if err := isValidCourseName(course.Name); err != nil {
 		return nil, err
 	}
+
+	// Step 1. Insert in database
 	id := uuid.New()
-	err := c.store.CreateCourse(ctx, storePort.CreateCourseParams{
+	err := c.store.CreateCourse(ctx, StorePort.CreateCourseParams{
 		ID:          id,
 		Name:        course.Name,
 		Description: course.Description,
@@ -47,12 +58,26 @@ func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (
 		// TODO: define database errors?
 		return nil, err
 	}
-	err = notifyClient.SendNotification(ctx, &notifyPort.NotificationRequest{
+
+	// Step 2. Notify users
+	err = notifyClient.SendNotification(ctx, &NotifyPort.NotificationRequest{
 		Message:    "my message",
 		Recipients: []string{"zaid", "amr"},
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// Step 3. Save in S3
+	objectContent := "something something"
+	_, err = s3Client.PutObject(&s3.PutObjectInput{
+		Bucket: &s3BucketName,
+		Key:    &s3ObjectKey,
+		Body:   bytes.NewReader([]byte(objectContent)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &id, nil
 }
