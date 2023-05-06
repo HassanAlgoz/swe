@@ -5,7 +5,7 @@ import (
 	"github.com/hassanalgoz/swe/pkg/entities"
 )
 
-func adaptCourse(c *port.Course) *entities.Course {
+func mapCourse(c *port.Course) *entities.Course {
 	return &entities.Course{
 		ID:          c.ID,
 		Name:        c.Name,

@@ -43,7 +43,7 @@ func Singleton() *Controller {
 
 func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (*uuid.UUID, error) {
 	// (may also call other services)
-	if err := isValidCourseName(course.Name); err != nil {
+	if err := validateCourseName(course.Name); err != nil {
 		return nil, err
 	}
 
@@ -80,4 +80,54 @@ func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (
 	}
 
 	return &id, nil
+}
+
+// UpdateCourse
+// err: ErrInvalidArgument | when validateCourseName OR validateDescriptionName errs
+// err: ErrNotFound        | when course is not found by this id
+func (c *Controller) UpdateCourse(ctx context.Context, id uuid.UUID, update entities.Course) error {
+	_, err := c.store.GetCourseById(ctx, id) // making sure it exists
+	if err != nil {
+		return err
+	}
+
+	switch {
+	// Case: All fields are set
+	case update.Name != "" && update.Description != "":
+		if err = validateCourseName(update.Name); err != nil {
+			return err
+		}
+		if err = validateCourseDescription(update.Description); err != nil {
+			return err
+		}
+		err = c.store.UpdateCourseById(ctx, StorePort.UpdateCourseByIdParams{
+			ID:          id,
+			Name:        update.Name,
+			Description: update.Description,
+		})
+
+	// Case: Just Description
+	case update.Description != "" && update.Name == "":
+		if err = validateCourseDescription(update.Description); err != nil {
+			return err
+		}
+		err = c.store.UpdateCourseDescriptionById(ctx, StorePort.UpdateCourseDescriptionByIdParams{
+			ID:          id,
+			Description: update.Description,
+		})
+
+	// Case: Just Name
+	case update.Name != "" && update.Description == "":
+		if err = validateCourseName(update.Name); err != nil {
+			return err
+		}
+		err = c.store.UpdateCourseNameById(ctx, StorePort.UpdateCourseNameByIdParams{
+			ID:   id,
+			Name: update.Name,
+		})
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }

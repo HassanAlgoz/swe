@@ -1,13 +1,22 @@
 package entities
 
 import (
-	"errors"
 	"fmt"
 )
 
-var (
-	ErrNotFound = errors.New("not found")
-)
+type ErrNotFound struct {
+	Resource  string
+	LookupKey string
+	Message   string
+}
+
+func (err *ErrNotFound) Error() string {
+	return fmt.Sprintf("not found: %v, %v, %v", err.Resource, err.LookupKey, err.Message)
+}
+
+func (err *ErrNotFound) Reason() string {
+	return "Invalid Argument"
+}
 
 // ErrInvalidArgument indicates an error with passed inputs
 type ErrInvalidArgument struct {
