@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/hassanalgoz/swe/pkg/adapters/services/lms"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
+	"github.com/hassanalgoz/swe/pkg/services/adapters/lms"
 )
 
 type service struct {

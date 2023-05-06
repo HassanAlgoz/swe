@@ -97,22 +97,3 @@ func ErrInvalidArgument(w http.ResponseWriter, err *entities.ErrInvalidArgument)
 		},
 	})
 }
-
-// ErrInvalidState 200
-func ErrInvalidState(w http.ResponseWriter, err *entities.ErrInvalidState) {
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(Response{
-		Error: Error{
-			Code:    http.StatusOK,
-			Message: err.Error(),
-			Errors: []ErrorItem{
-				{
-					Message:      err.Error(),
-					Reason:       err.Reason(),
-					LocationType: LocationTypeParameter,
-					Location:     err.RelatedArgument,
-				},
-			},
-		},
-	})
-}

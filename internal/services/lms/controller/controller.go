@@ -9,10 +9,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/services/lms/store"
 	StorePort "github.com/hassanalgoz/swe/internal/services/lms/store/port"
-	"github.com/hassanalgoz/swe/pkg/adapters/services/notify"
 	"github.com/hassanalgoz/swe/pkg/entities"
-	S3Client "github.com/hassanalgoz/swe/pkg/outbound/s3"
-	NotifyPort "github.com/hassanalgoz/swe/ports/services/notify"
+	S3Client "github.com/hassanalgoz/swe/pkg/external/s3"
+	"github.com/hassanalgoz/swe/pkg/services/adapters/notify"
+	NotifyPort "github.com/hassanalgoz/swe/pkg/services/ports/notify"
 )
 
 type Controller struct {

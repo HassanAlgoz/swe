@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/hassanalgoz/swe/micro/lms/service/store"
+	store "github.com/hassanalgoz/swe/internal/services/notify/store/port"
 	"github.com/hassanalgoz/swe/pkg/infra/database"
 )
 
@@ -17,6 +17,6 @@ func New(
 ) service {
 	return service{
 		ctx:   ctx,
-		store: store.New(database.Get()),
+		store: store.New(database.Singleton()),
 	}
 }

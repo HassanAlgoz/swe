@@ -14,7 +14,7 @@ var (
 	instance *sql.DB
 )
 
-func Get() *sql.DB {
+func Singleton() *sql.DB {
 	var err error
 
 	// Create the singleton instance of DB

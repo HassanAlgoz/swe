@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	grpcInbound "github.com/hassanalgoz/swe/pkg/ports/inbound/grpc"
-	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/http"
-	lmsPort "github.com/hassanalgoz/swe/ports/services/lms"
+	grpcInbound "github.com/hassanalgoz/swe/pkg/inbound/grpc"
+	inbound "github.com/hassanalgoz/swe/pkg/inbound/http"
+	lmsPort "github.com/hassanalgoz/swe/pkg/services/ports/lms"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

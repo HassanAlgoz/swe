@@ -3,7 +3,7 @@ package lms
 import (
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/pkg/entities"
-	port "github.com/hassanalgoz/swe/ports/services/lms"
+	port "github.com/hassanalgoz/swe/pkg/services/ports/lms"
 )
 
 func adaptCourse(c *port.Course) *entities.Course {

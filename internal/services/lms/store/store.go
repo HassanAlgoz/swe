@@ -18,7 +18,7 @@ var instance *Adapter
 func Singleton() *Adapter {
 	if instance == nil {
 		instance = &Adapter{
-			port: port.New(database.Get()),
+			port: port.New(database.Singleton()),
 		}
 	}
 	return instance

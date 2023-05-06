@@ -7,10 +7,9 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/hassanalgoz/swe/internal/app"
-	"github.com/hassanalgoz/swe/internal/inbound/http"
-	"github.com/hassanalgoz/swe/internal/inbound/kafka"
 	"github.com/hassanalgoz/swe/pkg/config"
+	"github.com/hassanalgoz/swe/pkg/inbound/http"
+	"github.com/hassanalgoz/swe/pkg/inbound/kafka"
 	"github.com/spf13/viper"
 )
 

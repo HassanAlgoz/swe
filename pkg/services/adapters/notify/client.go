@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
-	port "github.com/hassanalgoz/swe/ports/services/notify"
+	port "github.com/hassanalgoz/swe/pkg/services/ports/notify"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )

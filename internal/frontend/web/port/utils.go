@@ -3,7 +3,7 @@ package port
 import (
 	"net/http"
 
-	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/http"
+	inbound "github.com/hassanalgoz/swe/pkg/inbound/http"
 )
 
 type endpointOptions struct {

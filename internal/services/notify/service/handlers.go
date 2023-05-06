@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/google/uuid"
-	"github.com/hassanalgoz/swe/micro/notify/service/store"
+	port "github.com/hassanalgoz/swe/internal/services/notify/store/port"
 )
 
-func (s *service) GetStudentById(id uuid.UUID) (*store.Student, error) {
+func (s *service) GetStudentById(id uuid.UUID) (*port.Student, error) {
 	result, err := s.store.GetStudentById(s.ctx, id)
 	if err != nil {
 		return nil, err

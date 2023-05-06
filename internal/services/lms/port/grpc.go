@@ -5,9 +5,9 @@ import (
 
 	"github.com/hassanalgoz/swe/internal/services/lms/controller"
 	"github.com/hassanalgoz/swe/pkg/entities"
+	inbound "github.com/hassanalgoz/swe/pkg/inbound/grpc"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
-	inbound "github.com/hassanalgoz/swe/pkg/ports/inbound/grpc"
-	pb "github.com/hassanalgoz/swe/ports/services/lms"
+	pb "github.com/hassanalgoz/swe/pkg/services/ports/lms"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

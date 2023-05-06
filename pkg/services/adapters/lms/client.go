@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
-	port "github.com/hassanalgoz/swe/ports/services/lms"
+	port "github.com/hassanalgoz/swe/pkg/services/ports/lms"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
