@@ -3,23 +3,36 @@ package store
 import (
 	"context"
 	"database/sql"
+	"sync"
 
 	"github.com/google/uuid"
 	port "github.com/hassanalgoz/swe/internal/services/lms/store/port"
 	"github.com/hassanalgoz/swe/pkg/entities"
 	"github.com/hassanalgoz/swe/pkg/infra/database"
+	"github.com/spf13/viper"
 )
 
 type Adapter struct {
 	port port.Querier
 }
 
-var instance *Adapter
+var (
+	once     sync.Once
+	instance *Adapter
+)
 
-func Singleton() *Adapter {
-	if instance == nil {
-		instance = &Adapter{
-			port: port.New(database.Singleton()),
+func Get(namespace string) *Adapter {
+	switch viper.GetString("env") {
+	default:
+		once.Do(func() {
+			instance = &Adapter{
+				port: port.New(database.Get(namespace)),
+			}
+		})
+
+	case "test":
+		return &Adapter{
+			port: port.New(database.Get(namespace)),
 		}
 	}
 	return instance

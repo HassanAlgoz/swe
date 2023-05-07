@@ -19,8 +19,8 @@ type service struct {
 	pb.UnimplementedLMSServer
 }
 
-var log = logger.Singleton()
-var ctrl = controller.Singleton()
+var log = logger.Get()
+var ctrl = controller.Get("lms")
 
 func Register(registrar grpc.ServiceRegistrar) {
 	pb.RegisterLMSServer(registrar, service{})

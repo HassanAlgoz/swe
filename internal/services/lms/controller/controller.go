@@ -13,6 +13,7 @@ import (
 	S3Client "github.com/hassanalgoz/swe/pkg/external/s3"
 	"github.com/hassanalgoz/swe/pkg/services/adapters/notify"
 	NotifyPort "github.com/hassanalgoz/swe/pkg/services/ports/notify"
+	"github.com/spf13/viper"
 )
 
 type Controller struct {
@@ -24,20 +25,29 @@ var (
 	instance *Controller
 )
 
-var notifyClient = notify.Singleton()
+var notifyClient = notify.Get()
 
 var (
-	s3Client     = S3Client.Singleton()
+	s3Client     = S3Client.Get()
 	s3BucketName = "test-bucket"
 	s3ObjectKey  = "test-object"
 )
 
-func Singleton() *Controller {
-	once.Do(func() {
-		instance = &Controller{
-			store: store.Singleton(),
+func Get(namespace string) *Controller {
+	switch viper.GetString("env") {
+	default:
+		once.Do(func() {
+			instance = &Controller{
+				store: store.Get(namespace),
+			}
+		})
+
+	case "test":
+		return &Controller{
+			store: store.Get(namespace),
 		}
-	})
+	}
+
 	return instance
 }
 

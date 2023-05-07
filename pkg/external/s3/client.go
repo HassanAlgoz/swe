@@ -15,7 +15,7 @@ var (
 	once     sync.Once
 )
 
-func Singleton() s3iface.S3API {
+func Get() s3iface.S3API {
 	switch viper.GetString("app.env") {
 	case "prod":
 		once.Do(func() {

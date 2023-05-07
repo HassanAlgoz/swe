@@ -5,13 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hassanalgoz/swe/pkg/config"
 	"github.com/hassanalgoz/swe/pkg/entities"
 	"github.com/stretchr/testify/assert"
 )
 
-var ctrl = Singleton()
+func init() {
+	config.SetupTestConfig()
+}
 
 func TestCourseCRUD(t *testing.T) {
+	ctrl := Get("lms_TestCourseCRUD")
 	// Test: Create
 	course := entities.Course{
 		Name:        "Test Course",
@@ -68,6 +72,7 @@ func TestCourseCRUD(t *testing.T) {
 }
 
 func TestUpdateCourseUnhappy(t *testing.T) {
+	ctrl := Get("lms_TestUpdateCourseUnhappy")
 	// TODO: test the unhappy paths
 	courseId := uuid.MustParse("1d3d3d29-6d2c-4b5d-b3e3-1a7e0f8c4a5e")
 	testCases := []struct {

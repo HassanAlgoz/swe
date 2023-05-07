@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var log = logger.Singleton()
+var log = logger.Get()
 
 type Middleware func(http.HandlerFunc) http.HandlerFunc
 

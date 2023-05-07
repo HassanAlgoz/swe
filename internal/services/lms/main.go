@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var log = logger.Singleton()
+var log = logger.Get()
 
 func main() {
 	// Initialize

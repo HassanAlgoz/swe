@@ -18,18 +18,6 @@ func init() {
 }
 
 func main() {
-	// Configs
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
-	viper.WatchConfig() // This makes feature flagging possible at runtime (see the middleware)
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	cancelChan := make(chan os.Signal, 1)
 	signal.Notify(cancelChan, os.Interrupt)

@@ -19,7 +19,7 @@ var (
 	instance zerolog.Logger
 )
 
-func Singleton() zerolog.Logger {
+func Get() zerolog.Logger {
 	once.Do(func() {
 		zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 		zerolog.TimeFieldFormat = time.RFC3339Nano

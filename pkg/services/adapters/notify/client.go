@@ -20,9 +20,9 @@ var (
 	instance *Adapter
 )
 
-func Singleton() *Adapter {
+func Get() *Adapter {
 	var err error
-	log := logger.Singleton()
+	log := logger.Get()
 
 	once.Do(func() {
 		var conn *grpc.ClientConn

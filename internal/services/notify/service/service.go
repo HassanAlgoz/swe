@@ -17,6 +17,6 @@ func New(
 ) service {
 	return service{
 		ctx:   ctx,
-		store: store.New(database.Singleton()),
+		store: store.New(database.Get("notify")),
 	}
 }

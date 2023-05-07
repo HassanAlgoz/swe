@@ -14,7 +14,7 @@ type service struct {
 }
 
 var lmsClient = lms.Singleton()
-var log = logger.Singleton()
+var log = logger.Get()
 
 func NewServer(ctx context.Context) *service {
 	c := &service{

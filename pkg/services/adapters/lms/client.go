@@ -23,7 +23,7 @@ var (
 
 func Singleton() *Adapter {
 	var err error
-	log := logger.Singleton()
+	log := logger.Get()
 
 	once.Do(func() {
 		var conn *grpc.ClientConn
