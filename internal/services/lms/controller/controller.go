@@ -3,52 +3,34 @@ package controller
 import (
 	"bytes"
 	"context"
-	"sync"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/services/lms/store"
 	StorePort "github.com/hassanalgoz/swe/internal/services/lms/store/port"
 	"github.com/hassanalgoz/swe/pkg/entities"
-	S3Client "github.com/hassanalgoz/swe/pkg/external/s3"
-	"github.com/hassanalgoz/swe/pkg/services/adapters/notify"
 	NotifyPort "github.com/hassanalgoz/swe/pkg/services/ports/notify"
 	"github.com/spf13/viper"
 )
 
 type Controller struct {
-	store *store.Adapter
+	store  *store.Adapter
+	notify NotifyPort.NotificationsClient
+	s3     s3iface.S3API
 }
 
 var (
-	once     sync.Once
-	instance *Controller
+	s3BucketName = viper.GetString("s3.bucket_name")
+	s3ObjectKey  = viper.GetString("s3.object_key")
 )
 
-var notifyClient = notify.Get()
-
-var (
-	s3Client     = S3Client.Get()
-	s3BucketName = "test-bucket"
-	s3ObjectKey  = "test-object"
-)
-
-func Get(namespace string) *Controller {
-	switch viper.GetString("env") {
-	default:
-		once.Do(func() {
-			instance = &Controller{
-				store: store.Get(namespace),
-			}
-		})
-
-	case "test":
-		return &Controller{
-			store: store.Get(namespace),
-		}
+func New(store *store.Adapter, notify NotifyPort.NotificationsClient, s3 s3iface.S3API) *Controller {
+	return &Controller{
+		store:  store,
+		notify: notify,
+		s3:     s3,
 	}
-
-	return instance
 }
 
 func (c *Controller) GetCourseById(ctx context.Context, id uuid.UUID) (*entities.Course, error) {
@@ -83,7 +65,7 @@ func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (
 	}
 
 	// Step 2. Notify users
-	err = notifyClient.SendNotification(ctx, &NotifyPort.NotificationRequest{
+	_, err = c.notify.SendNotification(ctx, &NotifyPort.NotificationRequest{
 		Message:    "my message",
 		Recipients: []string{"zaid", "amr"},
 	})
@@ -93,7 +75,7 @@ func (c *Controller) CreateCourse(ctx context.Context, course entities.Course) (
 
 	// Step 3. Save in S3
 	objectContent := "something something"
-	_, err = s3Client.PutObject(&s3.PutObjectInput{
+	_, err = c.s3.PutObject(&s3.PutObjectInput{
 		Bucket: &s3BucketName,
 		Key:    &s3ObjectKey,
 		Body:   bytes.NewReader([]byte(objectContent)),

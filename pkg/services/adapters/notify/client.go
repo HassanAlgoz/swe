@@ -1,7 +1,6 @@
 package notify
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
@@ -11,39 +10,44 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Adapter struct {
-	port port.NotificationsClient
-}
+var log = logger.Get()
 
 var (
-	once     sync.Once
-	instance *Adapter
+	once sync.Once
+	conn *grpc.ClientConn
 )
 
-func Get() *Adapter {
-	var err error
-	log := logger.Get()
+type Adapter struct {
+	port.NotificationsClient
+	// namespace string
+}
 
+func Init() {
+	var err error
 	once.Do(func() {
-		var conn *grpc.ClientConn
-		conn, err = grpc.Dial(fmt.Sprintf("%s:%s", viper.GetString("grpc.search.host"), viper.GetString("grpc.search.port")), grpc.WithInsecure())
-		if err != nil {
-			return
-		}
-		instance = &Adapter{
-			port: port.NewNotificationsClient(conn),
-		}
+		target := fmt.Sprintf("%s:%s",
+			viper.GetString("services.lms.host"),
+			viper.GetString("services.lms.port"))
+		conn, err = grpc.Dial(target, grpc.WithInsecure())
 	})
 	if err != nil {
-		log.Fatal().Msgf("failed to instantiate gRPC client adapter: %v", err)
+		log.Fatal().Msgf(`failed to initialize "%s" gRPC: %v`, "notify.client", err)
 	}
-	return instance
 }
 
-func (a *Adapter) SendNotification(ctx context.Context, req *port.NotificationRequest) error {
-	_, err := a.port.SendNotification(ctx, req)
-	if err != nil {
-		return err
+func New() port.NotificationsClient {
+	Init()
+	client := &Adapter{
+		NotificationsClient: port.NewNotificationsClient(conn),
 	}
-	return nil
+	return client
 }
+
+// TODO: this shall be used in integration test, but I am not there yet.
+// func (a *Adapter) appendDefaultMetadata(ctx context.Context) {
+// 	if viper.GetString("env") == "test" {
+// 		metadata.AppendToOutgoingContext(ctx,
+// 			"namespace", a.namespace,
+// 		)
+// 	}
+// }

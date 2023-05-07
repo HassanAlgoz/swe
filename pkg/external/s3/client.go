@@ -7,26 +7,36 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/hassanalgoz/swe/pkg/infra/logger"
 	"github.com/spf13/viper"
 )
 
+var log = logger.Get()
+
 var (
-	instance s3iface.S3API
 	once     sync.Once
+	instance s3iface.S3API
 )
 
-func Get() s3iface.S3API {
-	switch viper.GetString("app.env") {
-	case "prod":
-		once.Do(func() {
+func Init() {
+	var err error
+	once.Do(func() {
+		if viper.GetString("app.env") == "prod" {
 			// Create the S3 client using the default session.
-			sess := session.Must(session.NewSession(aws.NewConfig().WithMaxRetries(viper.GetInt("s3.client.max_retries"))))
+			sess := session.Must(
+				session.NewSession(
+					aws.NewConfig().
+						WithMaxRetries(viper.GetInt("s3.client.max_retries")),
+				))
 			instance = s3.New(sess)
-		})
-	default:
-		once.Do(func() {
-			instance = newMockedS3Client()
-		})
+		}
+	})
+	if err != nil {
+		log.Fatal().Msgf(`failed to initialize "%s" gRPC: %v`, "notify.client", err)
 	}
+}
+
+func New() s3iface.S3API {
+	Init()
 	return instance
 }

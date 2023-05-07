@@ -23,7 +23,7 @@ message RecipientIdsRequest {
 }
 
 message Notification {
-  int64 id = 1;
+  string id = 1;
   string message = 2;
   repeated string recipients = 3;
   google.protobuf.Timestamp created_at = 4;

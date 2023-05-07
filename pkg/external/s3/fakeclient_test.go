@@ -14,7 +14,10 @@ import (
 )
 
 func TestS3Operations(t *testing.T) {
-	client := newMockedS3Client()
+	client := NewMock(MockState{
+		Files: map[string][]byte{},
+		Tags:  map[string]map[string]string{},
+	})
 
 	// Test PutObject operation
 	bucketName := "test-bucket"
