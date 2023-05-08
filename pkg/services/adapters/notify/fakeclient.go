@@ -15,18 +15,29 @@ type MockState struct {
 	Notifications []port.Notification
 }
 
+type MockFuncs struct {
+	SendNotification func(*port.NotificationRequest) (*port.NotificationsResponse, error)
+}
+
 type mockClient struct {
 	port.NotificationsClient // TODO: implement
 
 	mu    sync.Mutex
 	state MockState
+	funcs MockFuncs
 }
 
-func NewMock(state MockState) port.NotificationsClient {
-	return &mockClient{state: state}
+func NewMock(state MockState, funcs MockFuncs) port.NotificationsClient {
+	return &mockClient{
+		state: state,
+		funcs: funcs,
+	}
 }
 
 func (m *mockClient) SendNotification(ctx context.Context, in *port.NotificationRequest, opts ...grpc.CallOption) (*port.NotificationsResponse, error) {
+	if m.funcs.SendNotification != nil {
+		return m.funcs.SendNotification(in)
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.state.Notifications = append(m.state.Notifications, port.Notification{

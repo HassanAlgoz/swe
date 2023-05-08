@@ -31,3 +31,29 @@ func (err *ErrInvalidArgument) Error() string {
 func (err *ErrInvalidArgument) Reason() string {
 	return "Invalid Argument"
 }
+
+// ErrDeadlineExceeded indicates an error with passed inputs
+type ErrDeadlineExceeded struct {
+	Message string
+}
+
+func (err *ErrDeadlineExceeded) Error() string {
+	return fmt.Sprintf("deadline exceeded: %v", err.Message)
+}
+
+func (err *ErrDeadlineExceeded) Reason() string {
+	return "Deadline Exceeded"
+}
+
+// ErrInternal indicates an error with passed inputs
+type ErrInternal struct {
+	Message string
+}
+
+func (err *ErrInternal) Error() string {
+	return fmt.Sprintf("internal error: %v", err.Message)
+}
+
+func (err *ErrInternal) Reason() string {
+	return "Internal Error"
+}

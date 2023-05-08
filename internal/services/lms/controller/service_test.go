@@ -4,18 +4,23 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/internal/services/lms/store"
 	"github.com/hassanalgoz/swe/pkg/entities"
 	"github.com/hassanalgoz/swe/pkg/external/s3"
 	"github.com/hassanalgoz/swe/pkg/services/adapters/notify"
 	notifyPort "github.com/hassanalgoz/swe/pkg/services/ports/notify"
+	"github.com/hassanalgoz/swe/pkg/utils"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-func TestUnit_CourseCRUD(t *testing.T) {
+func TestCourseCRUD(t *testing.T) {
 	// internal service: use fakes (even better than baked responses; stubs)
 	notifyClient := notify.NewMock(notify.MockState{
 		Notifications: []notifyPort.Notification{},
-	})
+	}, notify.MockFuncs{})
 
 	// external service: use fakes (even better than baked responses; stubs)
 	s3Client := s3.NewMock(s3.MockState{
@@ -24,7 +29,8 @@ func TestUnit_CourseCRUD(t *testing.T) {
 	})
 
 	// store is a direct infrastructure dependency, so: use the real thing
-	storeClient := store.Get(t.Name())
+	dbname := utils.RandomString(30)
+	storeClient := store.Get(dbname)
 
 	controller := New(storeClient, notifyClient, s3Client)
 
@@ -81,6 +87,52 @@ func TestUnit_CourseCRUD(t *testing.T) {
 	if deletedCourse != nil || err == nil {
 		t.Fatalf("course was not deleted")
 	}
+}
+
+func TestUpdateCourseErrorScenarios(t *testing.T) {
+	// external service: use fakes (even better than baked responses; stubs)
+	s3Client := s3.NewMock(s3.MockState{
+		Files: map[string][]byte{},
+		Tags:  map[string]map[string]string{},
+	})
+
+	// store is a direct infrastructure dependency, so: use the real thing
+	dbname := utils.RandomString(30)
+	storeClient := store.Get(dbname)
+
+	t.Run("send notification errs with codes.DeadlineExceeded", func(t *testing.T) {
+		notifyClient := notify.NewMock(notify.MockState{
+			Notifications: []notifyPort.Notification{},
+		}, notify.MockFuncs{
+			SendNotification: func(in *notifyPort.NotificationRequest) (*notifyPort.NotificationsResponse, error) {
+				return nil, status.Error(codes.DeadlineExceeded, "Deadline Exceeded")
+			},
+		})
+
+		controller := New(storeClient, notifyClient, s3Client)
+
+		id := uuid.MustParse("3cf74680-4b50-4ccd-9e8a-009272594858")
+		updatedCourse := entities.Course{}
+		err := controller.UpdateCourse(context.Background(), id, updatedCourse)
+		assert.Equal(t, entities.ErrDeadlineExceeded{}, err)
+	})
+
+	t.Run("send notification errs with codes.Internal", func(t *testing.T) {
+		notifyClient := notify.NewMock(notify.MockState{
+			Notifications: []notifyPort.Notification{},
+		}, notify.MockFuncs{
+			SendNotification: func(in *notifyPort.NotificationRequest) (*notifyPort.NotificationsResponse, error) {
+				return nil, status.Error(codes.Internal, "Internal")
+			},
+		})
+
+		controller := New(storeClient, notifyClient, s3Client)
+
+		id := uuid.MustParse("3cf74680-4b50-4ccd-9e8a-009272594858")
+		updatedCourse := entities.Course{}
+		err := controller.UpdateCourse(context.Background(), id, updatedCourse)
+		assert.Equal(t, entities.ErrInternal{}, err)
+	})
 }
 
 // func TestUpdateCourseUnhappy(t *testing.T) {

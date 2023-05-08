@@ -21,18 +21,22 @@ var (
 	instance *Adapter
 )
 
-func Get(namespace string) *Adapter {
+// Get dbname must not exceeed 31 characters
+func Get(dbname string) *Adapter {
+	if len(dbname) > 31 {
+		panic("dbname must not exceeed 31 characters")
+	}
 	switch viper.GetString("env") {
 	default:
 		once.Do(func() {
 			instance = &Adapter{
-				port: port.New(database.Get(namespace)),
+				port: port.New(database.Get(dbname)),
 			}
 		})
 
 	case "test":
 		return &Adapter{
-			port: port.New(database.Get(namespace)),
+			port: port.New(database.Get(dbname)),
 		}
 	}
 	return instance
