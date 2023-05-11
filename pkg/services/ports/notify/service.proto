@@ -6,14 +6,8 @@ package notify;
 
 option go_package = "github.com/hassanalgoz/swe/pkg/services/ports/notify";
 
-service Notifications { 
-  rpc SendNotification(SendNotificationRequest) returns (Empty) {}
-}
-
-message SendNotificationRequest {
-  string title = 1;
-  string body = 2;
-  repeated NotificationRecipient recipients = 3;
+service Notifications {
+  rpc SendNotification(Notification) returns (Empty) {}
 }
 
 message Empty {}
@@ -21,7 +15,7 @@ message Empty {}
 message Notification {
   string id = 1;
   string message = 2;
-  repeated string recipients = 3;
+  repeated NotificationRecipient recipients = 3;
   google.protobuf.Timestamp created_at = 4;
 }
 

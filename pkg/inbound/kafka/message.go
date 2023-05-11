@@ -1,5 +1,7 @@
 package kafka
 
 type Message struct {
-	Type string `json:"key"`
+	Type   string `json:"type"`
+	Header []byte `json:"header"`
+	Body   []byte `json:"body"`
 }

@@ -7,15 +7,18 @@ import (
 	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/hassanalgoz/swe/pkg/infra/logger"
 )
 
-type consumer struct {
+var log = logger.Get()
+
+type Consumer struct {
 	ctx      context.Context
 	consumer *kafka.Consumer
 	topics   []string
 }
 
-func NewConsumer(ctx context.Context, bootstrapServers string, group string, topics []string) *consumer {
+func NewConsumer(ctx context.Context, bootstrapServers string, group string, topics []string) *Consumer {
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers":        bootstrapServers,
 		"broker.address.family":    "v4",
@@ -28,15 +31,15 @@ func NewConsumer(ctx context.Context, bootstrapServers string, group string, top
 		fmt.Fprintf(os.Stderr, "Failed to create consumer: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Created Consumer %v\n", c)
-	return &consumer{
+	log.Debug().Msgf("Created Consumer %v\n", c)
+	return &Consumer{
 		ctx:      ctx,
 		consumer: c,
 		topics:   topics,
 	}
 }
 
-func (c *consumer) Start(done <-chan bool) {
+func (c *Consumer) Start(done <-chan bool, handler func(msg Message)) {
 	err := c.consumer.SubscribeTopics(c.topics, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to subscribe to topics: %s\n", err)
@@ -47,7 +50,7 @@ func (c *consumer) Start(done <-chan bool) {
 	for run {
 		select {
 		case sig := <-done:
-			fmt.Printf("Caught signal %v: terminating\n", sig)
+			log.Debug().Msgf("Caught signal %v: terminating\n", sig)
 			run = false
 		default:
 			ev := c.consumer.Poll(100)
@@ -57,14 +60,9 @@ func (c *consumer) Start(done <-chan bool) {
 
 			switch e := ev.(type) {
 			case *kafka.Message:
-				fmt.Printf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
+				log.Debug().Msgf("%% Message on %s:\n%s\n", e.TopicPartition, string(e.Value))
 				if e.Headers != nil {
-					fmt.Printf("%% Headers: %v\n", e.Headers)
-				}
-
-				_, err := c.consumer.StoreMessage(e)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "%% Error storing offset after message %s:\n", e.TopicPartition)
+					log.Debug().Msgf("%% Headers: %v\n", e.Headers)
 				}
 
 				var message Message
@@ -73,7 +71,12 @@ func (c *consumer) Start(done <-chan bool) {
 					fmt.Fprintf(os.Stderr, "%% Error unmarshalling event %s:\n", e.TopicPartition)
 					continue
 				}
-				c.handle(message)
+				handler(message)
+
+				_, err := c.consumer.StoreMessage(e)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "%% Error storing offset after message %s:\n", e.TopicPartition)
+				}
 
 			case kafka.Error:
 				// Errors should generally be considered
@@ -87,11 +90,11 @@ func (c *consumer) Start(done <-chan bool) {
 				}
 
 			default:
-				fmt.Printf("Ignored %v\n", e)
+				log.Debug().Msgf("Ignored %v\n", e)
 			}
 		}
 	}
 
-	fmt.Printf("Closing consumer\n")
+	log.Debug().Msgf("Closing consumer\n")
 	c.consumer.Close()
 }
