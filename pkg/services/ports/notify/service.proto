@@ -6,21 +6,17 @@ package notify;
 
 option go_package = "github.com/hassanalgoz/swe/pkg/services/ports/notify";
 
-service Notifications {
-  rpc SendNotification(NotificationRequest) returns (NotificationsResponse) {}
-  rpc GetNotificationsByRecipientsIds(RecipientIdsRequest) returns (NotificationsResponse) {}
+service Notifications { 
+  rpc SendNotification(SendNotificationRequest) returns (Empty) {}
 }
 
-message NotificationRequest {
-  string message = 1;
-  repeated string recipients = 2;
+message SendNotificationRequest {
+  string title = 1;
+  string body = 2;
+  repeated NotificationRecipient recipients = 3;
 }
 
-message RecipientIdsRequest {
-  repeated string recipient_ids = 1;
-  int32 page_size = 2;
-  string page_token = 3;
-}
+message Empty {}
 
 message Notification {
   string id = 1;
@@ -29,7 +25,13 @@ message Notification {
   google.protobuf.Timestamp created_at = 4;
 }
 
-message NotificationsResponse {
-  repeated Notification notifications = 1;
-  string next_page_token = 2;
+message NotificationRecipient {
+  enum Channel {
+    UNSPECIFIED = 0;
+    TWITTER = 1;
+    YOUTUBE = 2;
+    FRONTEND = 3; // to our users
+  }
+  Channel channel = 1;
+  google.protobuf.Timestamp when = 2;
 }

@@ -1,51 +1,48 @@
 package lms
 
 import (
-	"context"
 	"fmt"
 	"sync"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
 	port "github.com/hassanalgoz/swe/pkg/services/ports/lms"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
-type Adapter struct {
-	port port.LMSClient
-}
+var log = logger.Get()
 
 var (
-	once     sync.Once
-	instance *Adapter
+	once sync.Once
+	conn *grpc.ClientConn
 )
 
-func Singleton() *Adapter {
-	var err error
-	log := logger.Get()
-
-	once.Do(func() {
-		var conn *grpc.ClientConn
-		conn, err = grpc.Dial(fmt.Sprintf("%s:%s", viper.GetString("grpc.search.host"), viper.GetString("grpc.search.port")), grpc.WithInsecure())
-		if err != nil {
-			return
-		}
-		instance = &Adapter{
-			port: port.NewLMSClient(conn),
-		}
-	})
-	if err != nil {
-		log.Fatal().Msgf("failed to instantiate gRPC client adapter: %v", err)
-	}
-	return instance
+type Adapter struct {
+	port.LMSClient
 }
 
-func (a *Adapter) CreateCourse(ctx context.Context, req *port.CreateCourseRequest) (*uuid.UUID, error) {
-	resp, err := a.port.CreateCourse(ctx, req)
+func Init() {
+	var err error
+	once.Do(func() {
+		target := fmt.Sprintf("%s:%s",
+			viper.GetString("services.default.host"),
+			viper.GetString("services.default.port"))
+		conn, err = grpc.Dial(
+			target,
+			grpc.WithInsecure(),
+			grpc.WithTimeout(time.Duration(viper.GetInt("grpc.client.timeout"))*time.Second),
+		)
+	})
 	if err != nil {
-		return nil, err
+		log.Fatal().Msgf(`failed to initialize "%s" gRPC: %v`, "notify.client", err)
 	}
-	id := uuid.MustParse(resp.Id)
-	return &id, nil
+}
+
+func New() port.LMSClient {
+	Init()
+	client := &Adapter{
+		LMSClient: port.NewLMSClient(conn),
+	}
+	return client
 }

@@ -3,28 +3,18 @@ package controller
 import (
 	"fmt"
 
-	"github.com/hassanalgoz/swe/pkg/entities"
+	"github.com/hassanalgoz/swe/pkg/xstatus"
 	"github.com/spf13/viper"
 )
 
-var courseNameLengthMin = viper.GetInt("app.rules.course_name_length_min")
-var courseNameLengthMax = viper.GetInt("app.rules.course_name_length_max")
+var courseCodeLengthMin = viper.GetInt("app.rules.course_code_length_min")
+var courseCodeLengthMax = viper.GetInt("app.rules.course_code_length_max")
 
-func validateCourseName(name string) *entities.ErrInvalidArgument {
-	if courseNameLengthMin <= len(name) && len(name) <= courseNameLengthMax {
-		return &entities.ErrInvalidArgument{
-			Argument: "name",
-			Message:  fmt.Sprintf("name must at least be %d characters long", courseNameLengthMin),
-		}
-	}
-	return nil
-}
-
-func validateCourseDescription(description string) *entities.ErrInvalidArgument {
-	if len(description) > 3 {
-		return &entities.ErrInvalidArgument{
-			Argument: "description",
-			Message:  fmt.Sprintf("desc must at least be %d characters long", 3),
+func validateCourseCode(code string) *xstatus.ErrInvalidArgument {
+	if courseCodeLengthMin <= len(code) && len(code) <= courseCodeLengthMax {
+		return &xstatus.ErrInvalidArgument{
+			Argument: "code",
+			Message:  fmt.Sprintf("code must at least be %d characters long", courseCodeLengthMin),
 		}
 	}
 	return nil

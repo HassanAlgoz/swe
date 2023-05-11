@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/hassanalgoz/swe/pkg/entities"
+	"github.com/hassanalgoz/swe/pkg/xstatus"
 )
 
 type LocationTypeEnum string
@@ -80,7 +80,7 @@ func ErrInternal(w http.ResponseWriter, err error) {
 }
 
 // ErrInvalidArgument 400
-func ErrInvalidArgument(w http.ResponseWriter, err *entities.ErrInvalidArgument) {
+func ErrInvalidArgument(w http.ResponseWriter, err *xstatus.ErrInvalidArgument) {
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(Response{
 		Error: Error{

@@ -5,128 +5,41 @@ package lms;
 option go_package = "github.com/hassanalgoz/swe/pkg/services/ports/lms";
 
 service LMS {
-  rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse) {}
-  rpc GetCourse(GetCourseRequest) returns (GetCourseResponse) {}
-  rpc UpdateCourse(UpdateCourseRequest) returns (UpdateCourseResponse) {}
-  rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse) {}
+  // Create
+  rpc CreateCourse(CoursePut) returns (Course) {}
 
-  rpc CreateStudent(CreateStudentRequest) returns (CreateStudentResponse) {}
-  rpc GetStudent(GetStudentRequest) returns (GetStudentResponse) {}
-  rpc UpdateStudent(UpdateStudentRequest) returns (UpdateStudentResponse) {}
-  rpc DeleteStudent(DeleteStudentRequest) returns (DeleteStudentResponse) {}
+  // Read
+  rpc GetCourseById(ByOneField) returns (Course) {}
+  rpc GetCourseByCode(ByOneField) returns (Course) {}
+  rpc ListCourses(Empty) returns (CourseList) {}
+
+  // Update
+  rpc UpdateCourse(CoursePut) returns (Course) {}
   
-  rpc CreateEnrollment(CreateEnrollmentRequest) returns (CreateEnrollmentResponse) {}
+  // Delete
+  rpc DeleteCourse(ByOneField) returns (Empty) {}
 }
 
+message Empty {}
 
 message Course {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  repeated string instructors = 4;
-  repeated string students = 5;
+  string id = 1;   // uuidv4
+  string code = 2; // ex: ICS101
+  string name = 3; // ex: Introduction to Computer Science
+  string description = 4;
+}
+
+message CoursePut {
+  string id = 1;   // specified in update only
+  string code = 2;
+  string name = 3;
+  string description = 4;
+}
+
+message ByOneField {
+  string value = 1;
 }
 
 message CourseList {
-  repeated Course courses = 1;
-}
-
-message CreateCourseRequest {
-  string name = 1;
-  string description = 2;
-  repeated string instructors = 3;
-}
-
-message CreateCourseResponse {
-  string id = 1;
-}
-
-message GetCourseRequest {
-  string id = 1;
-}
-
-message GetCourseResponse {
-  Course course = 1;
-}
-
-message UpdateCourseRequest {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  repeated string instructors = 4;
-}
-
-message UpdateCourseResponse {
-  Course course = 1;
-}
-
-message DeleteCourseRequest {
-  string id = 1;
-}
-
-message DeleteCourseResponse {
-}
-
-message Student {
-  string id = 1;
-  string name = 2;
-  string email = 3;
-  repeated string courses = 4;
-}
-
-message StudentList {
-  repeated Student students = 1;
-}
-
-message CreateStudentRequest {
-  string name = 1;
-  string email = 2;
-}
-
-message CreateStudentResponse {
-  Student student = 1;
-}
-
-message GetStudentRequest {
-  string id = 1;
-}
-
-message GetStudentResponse {
-  Student student = 1;
-}
-
-message UpdateStudentRequest {
-  string id = 1;
-  string name = 2;
-  string email = 3;
-}
-
-message UpdateStudentResponse {
-  Student student = 1;
-}
-
-message DeleteStudentRequest {
-  string id = 1;
-}
-
-message DeleteStudentResponse {
-}
-
-message Enrollment {
-  string id = 1;
-  string courseId = 2;
-  string studentId = 3;
-}
-
-message EnrollmentList {
-  repeated Enrollment enrollments = 1;
-}
-
-message CreateEnrollmentRequest {
-  string courseId = 1;
-  string studentId = 2;
-}
-
-message CreateEnrollmentResponse {
-  Enrollment enrollment = 1;
+  repeated Course list = 1;
 }

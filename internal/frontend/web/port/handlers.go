@@ -21,13 +21,10 @@ func (s *service) registerHandlers() {
 	s.mux.Handle("/metrics", promhttp.Handler())
 
 	// Action handlers
-	s.registerEndpoint([]string{http.MethodPost}, "/transfer:transfer-money", s.TransferMoney, &endpointOptions{
+	s.registerEndpoint([]string{http.MethodPost}, "/api/courses:create", s.TransferMoney, &endpointOptions{
 		RequiredFeatureFlags: []string{"money_transfer"},
 		RequiredHeaders:      []inbound.Header{inbound.HeaderAuthorization, inbound.HeaderRequestId},
 	})
-	// s.registerEndpoint([]string{http.MethodGet}, "/user:get-account", s.GetAccount, &inbound.MiddlewareOptions{
-	// 	RequiredHeaders: []inbound.Header{inbound.HeaderAuthorization},
-	// })
 }
 
 func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
@@ -71,11 +68,12 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse body.json
+	// Parse body as json
 	var fields struct {
-		From   string `json:"from"`
-		To     string `json:"to"`
-		Amount int64  `json:"amount"`
+		Id          string `json:"id"`
+		Code        string `json:"code"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 	}
 	err = json.Unmarshal(body, &fields)
 	if err != nil {
@@ -89,29 +87,18 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse body.json.fields
+	// Parse fields
 	// note: errors are appended
 	var fieldsErrors []inbound.ErrorItem
-	from, err := uuid.Parse(fields.From)
+	_, err = uuid.Parse(fields.Id)
 	if err != nil {
 		fieldsErrors = append(fieldsErrors, inbound.ErrorItem{
 			LocationType: "parameter",
-			Location:     "from",
-			Message:      "invalid uuid",
+			Location:     "id",
+			Message:      "invalid uuidv4",
 			Reason:       err.Error(),
 		})
 	}
-	to, err := uuid.Parse(fields.To)
-	if err != nil {
-		fieldsErrors = append(fieldsErrors, inbound.ErrorItem{
-			LocationType: "parameter",
-			Location:     "to",
-			Message:      "invalid uuid",
-			Reason:       err.Error(),
-		})
-	}
-
-	amount := fields.Amount
 
 	// Return parsing errors (if any)
 	if len(fieldsErrors) > 0 {
@@ -126,21 +113,20 @@ func (s *service) TransferMoney(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// pre-action Log
-	log.Debug().Msgf("MoneyTransfer from %s to %s for %d by user %s", from, to, amount, reqID)
+	// Call the RPC
 
-	// Embed http headers as gRPC headers
+	// but first, embed headers
 	md := metadata.New(map[string]string{
 		string(grpcInbound.HeaderUserId):    authToken,
 		string(grpcInbound.HeaderRequestId): reqID,
 	})
 	grpc.SendHeader(s.ctx, md)
 
-	// Invoke the action
-	id, err := lmsClient.CreateCourse(s.ctx, &lmsPort.CreateCourseRequest{
-		Name:        from.String(),
-		Description: "asdf asdf",
-		Instructors: []string{"vczxcv", "123asdf"},
+	// call
+	id, err := s.lms.CreateCourse(s.ctx, &lmsPort.CoursePut{
+		Code:        fields.Code,
+		Name:        fields.Name,
+		Description: fields.Description,
 	})
 	if err != nil {
 		statusErr, ok := status.FromError(err)

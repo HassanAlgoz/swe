@@ -1,9 +1,10 @@
-package entities
+package xstatus
 
 import (
 	"fmt"
 )
 
+// ErrNotFound
 type ErrNotFound struct {
 	Resource  string
 	LookupKey string
@@ -18,7 +19,7 @@ func (err *ErrNotFound) Reason() string {
 	return "Invalid Argument"
 }
 
-// ErrInvalidArgument indicates an error with passed inputs
+// ErrInvalidArgument
 type ErrInvalidArgument struct {
 	Argument string
 	Message  string
@@ -32,7 +33,7 @@ func (err *ErrInvalidArgument) Reason() string {
 	return "Invalid Argument"
 }
 
-// ErrDeadlineExceeded indicates an error with passed inputs
+// ErrDeadlineExceeded
 type ErrDeadlineExceeded struct {
 	Message string
 }
@@ -45,7 +46,7 @@ func (err *ErrDeadlineExceeded) Reason() string {
 	return "Deadline Exceeded"
 }
 
-// ErrInternal indicates an error with passed inputs
+// ErrInternal
 type ErrInternal struct {
 	Message string
 }

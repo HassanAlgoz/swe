@@ -5,8 +5,8 @@ app:
     tx_analytics: false
   rules:
     discount_eligibility_duration: 1800h # 6 months
-    course_name_length_min: 6
-    course_name_length_max: 6
+    course_code_length_min: 6
+    course_code_length_max: 6
 
 
 logger:
@@ -39,7 +39,7 @@ metrics:
 
 
 services:
-  lms:
+  default:
     host: "localhost"
     port: 50051
 
@@ -47,4 +47,9 @@ services:
 s3:
   client:
     max_retries: 5
+  bucket_name: "test-bucket"
+  object_key: "test-object"
 
+grpc:
+  client:
+    timeout: 5

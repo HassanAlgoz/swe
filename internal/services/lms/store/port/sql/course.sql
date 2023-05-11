@@ -1,23 +1,26 @@
 CREATE TABLE course (
     id UUID PRIMARY KEY,
+    code TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL
 );
 
--- name: CreateCourse :exec
-INSERT INTO course (id, name, description) VALUES ($1, $2, $3);
+-- name: CreateCourse :one
+INSERT INTO course (id, code, name, description) VALUES ($1, $2, $3, $4)
+RETURNING *;
 
--- name: GetCourseById :one
-SELECT * FROM course WHERE id = $1;
+-- name: GetCourse :one
+SELECT * FROM course
+WHERE id = $1;
 
--- name: UpdateCourseById :exec
-UPDATE course SET name = $2, description = $3 WHERE id = $1;
-
--- name: UpdateCourseNameById :exec
-UPDATE course SET name = $2 WHERE id = $1;
-
--- name: UpdateCourseDescriptionById :exec
-UPDATE course SET description = $2 WHERE id = $1;
+-- name: UpdateCourse :one
+UPDATE course
+SET code = $2,
+    name = $3,
+    description = $4
+WHERE id = $1
+RETURNING *;
 
 -- name: DeleteCourse :exec
-DELETE FROM course WHERE id = $1;
+DELETE FROM course
+WHERE id = $1;
