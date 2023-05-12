@@ -9,6 +9,7 @@ import (
 	"github.com/hassanalgoz/swe/internal/services/notify/consumer"
 	"github.com/hassanalgoz/swe/internal/services/notify/controller"
 	"github.com/hassanalgoz/swe/internal/services/notify/producer"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -22,7 +23,10 @@ func main() {
 		cancel()
 	}()
 
-	p, err := producer.New(ctx)
+	p, err := producer.New(ctx,
+		viper.GetString("kafka.bootstrap.servers"),
+		viper.GetString("services.notify.producer.topic"),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -30,6 +34,10 @@ func main() {
 	ctrl := controller.New(p)
 
 	// Initialize
-	c := consumer.New(ctx, ctrl)
+	c := consumer.New(ctx, ctrl,
+		viper.GetString("kafka.bootstrap.servers"),
+		viper.GetString("services.notify.consumer.group.id"),
+		viper.GetStringSlice("services.notify.consumer.topics"),
+	)
 	c.Start(done)
 }

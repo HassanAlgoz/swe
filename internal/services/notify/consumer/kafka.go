@@ -8,7 +8,6 @@ import (
 	xkafka "github.com/hassanalgoz/swe/pkg/infra/kafka"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
 	"github.com/hassanalgoz/swe/pkg/services/ports/notify"
-	"github.com/spf13/viper"
 )
 
 type Consumer struct {
@@ -18,13 +17,8 @@ type Consumer struct {
 
 var log = logger.Get()
 
-func New(ctx context.Context, ctrl *controller.Controller) *Consumer {
-	c := xkafka.NewConsumer(
-		ctx,
-		viper.GetString("kafka.bootstrap.servers"),
-		viper.GetString("services.notify.consumer.group.id"),
-		viper.GetStringSlice("services.notify.consumer.topics"),
-	)
+func New(ctx context.Context, ctrl *controller.Controller, bootstrapServers string, groupId string, topics []string) *Consumer {
+	c := xkafka.NewConsumer(ctx, bootstrapServers, groupId, topics)
 	return &Consumer{
 		consumer:   c,
 		controller: ctrl,

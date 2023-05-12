@@ -6,19 +6,14 @@ import (
 
 	xkafka "github.com/hassanalgoz/swe/pkg/infra/kafka"
 	"github.com/hassanalgoz/swe/pkg/services/ports/notify"
-	"github.com/spf13/viper"
 )
 
 type Producer struct {
 	producer *xkafka.Producer
 }
 
-func New(ctx context.Context) (*Producer, error) {
-	c, err := xkafka.NewProducer(
-		ctx,
-		viper.GetString("kafka.bootstrap.servers"),
-		viper.GetString("services.notify.producer.topic"),
-	)
+func New(ctx context.Context, bootstrapServers string, topic string) (*Producer, error) {
+	c, err := xkafka.NewProducer(ctx, bootstrapServers, topic)
 	if err != nil {
 		return nil, err
 	}
