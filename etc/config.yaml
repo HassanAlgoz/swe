@@ -42,7 +42,15 @@ services:
   default:
     host: "localhost"
     port: 50051
-
+  notify:
+    consumer:
+      group:
+        id: notify-consumer
+      topics:
+        notifications
+    producer:
+      topic: notifications
+      
 
 s3:
   client:
@@ -50,6 +58,12 @@ s3:
   bucket_name: "test-bucket"
   object_key: "test-object"
 
+
 grpc:
   client:
     timeout: 5
+
+
+kafka:
+  bootstrap:
+    servers: localhost:9092

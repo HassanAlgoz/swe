@@ -7,10 +7,7 @@ import (
 	"os"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hassanalgoz/swe/pkg/infra/logger"
 )
-
-var log = logger.Get()
 
 type Consumer struct {
 	ctx      context.Context
@@ -39,7 +36,7 @@ func NewConsumer(ctx context.Context, bootstrapServers string, group string, top
 	}
 }
 
-func (c *Consumer) Start(done <-chan bool, handler func(msg Message)) {
+func (c *Consumer) Start(done <-chan struct{}, handler func(msg Message)) {
 	err := c.consumer.SubscribeTopics(c.topics, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to subscribe to topics: %s\n", err)

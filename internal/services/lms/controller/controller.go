@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -10,6 +11,7 @@ import (
 	StorePort "github.com/hassanalgoz/swe/internal/services/lms/store/port"
 	NotifyPort "github.com/hassanalgoz/swe/pkg/services/ports/notify"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var (
@@ -57,9 +59,18 @@ func (c *Controller) CreateCourse(ctx context.Context, course StorePort.Course) 
 	}
 
 	// Step 2: Notify users
-	_, err = c.notify.SendNotification(ctx, &NotifyPort.SendNotificationRequest{
-		Title: "my title",
-		Body:  "<body><h1>My Message</h1></body>",
+	_, err = c.notify.SendNotification(ctx, &NotifyPort.Notification{
+		Message: "<body><h1>My Message</h1></body>",
+		Recipients: []*NotifyPort.NotificationRecipient{
+			{
+				Channel: NotifyPort.NotificationRecipient_TWITTER,
+				When:    timestamppb.New(time.Now()),
+			},
+			{
+				Channel: NotifyPort.NotificationRecipient_YOUTUBE,
+				When:    timestamppb.New(time.Now().Add(4 * time.Hour)),
+			},
+		},
 	})
 	if err != nil {
 		return nil, err

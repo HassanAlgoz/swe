@@ -1,50 +1,48 @@
-package port
+package consumer
 
 import (
 	"context"
 	"encoding/json"
 
 	"github.com/hassanalgoz/swe/internal/services/notify/controller"
-	inbound "github.com/hassanalgoz/swe/pkg/inbound/kafka"
+	xkafka "github.com/hassanalgoz/swe/pkg/infra/kafka"
 	"github.com/hassanalgoz/swe/pkg/infra/logger"
 	"github.com/hassanalgoz/swe/pkg/services/ports/notify"
 	"github.com/spf13/viper"
 )
 
-type consumer struct {
-	consumer   *inbound.Consumer
+type Consumer struct {
+	consumer   *xkafka.Consumer
 	controller *controller.Controller
 }
 
-var instance *consumer
-
 var log = logger.Get()
 
-func New(ctx context.Context, ctrl *controller.Controller) {
-	c := inbound.NewConsumer(
+func New(ctx context.Context, ctrl *controller.Controller) *Consumer {
+	c := xkafka.NewConsumer(
 		ctx,
 		viper.GetString("kafka.bootstrap.servers"),
 		viper.GetString("services.notify.consumer.group.id"),
 		viper.GetStringSlice("services.notify.consumer.topics"),
 	)
-	instance = &consumer{
+	return &Consumer{
 		consumer:   c,
 		controller: ctrl,
 	}
 }
 
-func (c *consumer) handler(message inbound.Message) {
-	var req notify.Notification
-	err := json.Unmarshal(message.Body, &req)
+func (c *Consumer) handler(message xkafka.Message) {
+	var req *notify.Notification
+	err := json.Unmarshal(message.Body, req)
 	if err != nil {
 		log.Err(err).Msgf("failed to handle consumed message: %v", message)
 	}
 	err = c.controller.SendNotification(context.Background(), req)
 	if err != nil {
-		log.Err(err).Msgf("failed to send notification: %v", req)
+		log.Err(err).Msgf("failed to send notification: %s", req.String())
 	}
 }
 
-func (c *consumer) Start(done <-chan bool) {
+func (c *Consumer) Start(done <-chan struct{}) {
 	c.consumer.Start(done, c.handler)
 }
