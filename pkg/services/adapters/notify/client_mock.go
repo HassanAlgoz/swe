@@ -16,7 +16,7 @@ type MockState struct {
 }
 
 type MockFuncs struct {
-	SendNotification func(*port.NotificationRequest) (*port.NotificationsResponse, error)
+	SendNotification func(*port.Notification) (*port.Empty, error)
 }
 
 type mockClient struct {
@@ -34,7 +34,7 @@ func NewMock(state MockState, funcs MockFuncs) port.NotificationsClient {
 	}
 }
 
-func (m *mockClient) SendNotification(ctx context.Context, in *port.NotificationRequest, opts ...grpc.CallOption) (*port.NotificationsResponse, error) {
+func (m *mockClient) SendNotification(ctx context.Context, in *port.Notification, opts ...grpc.CallOption) (*port.Empty, error) {
 	if m.funcs.SendNotification != nil {
 		return m.funcs.SendNotification(in)
 	}
@@ -46,5 +46,5 @@ func (m *mockClient) SendNotification(ctx context.Context, in *port.Notification
 		Recipients: in.GetRecipients(),
 		CreatedAt:  timestamppb.New(time.Now()),
 	})
-	return &port.NotificationsResponse{}, nil
+	return &port.Empty{}, nil
 }
