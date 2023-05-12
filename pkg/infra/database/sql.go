@@ -11,9 +11,11 @@ import (
 )
 
 var (
-	once       sync.Once
-	instance   *sql.DB
-	postgresDB *sql.DB
+	onceInstance sync.Once
+	instance     *sql.DB
+
+	oncePostgres sync.Once
+	postgresDB   *sql.DB
 )
 
 func Get(dbname string) *sql.DB {
@@ -21,7 +23,7 @@ func Get(dbname string) *sql.DB {
 
 	switch viper.GetString("env") {
 	default:
-		once.Do(func() {
+		onceInstance.Do(func() {
 			dbinfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 				viper.GetString("database.host"),
 				viper.GetInt("database.port"),
@@ -70,7 +72,7 @@ func Get(dbname string) *sql.DB {
 }
 
 func createDatabase(dbname string) error {
-	once.Do(func() {
+	oncePostgres.Do(func() {
 		var err error
 		dbinfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			viper.GetString("database.host"),
