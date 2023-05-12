@@ -1,7 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"github.com/hassanalgoz/swe/internal/services/lms/controller"
 	"github.com/hassanalgoz/swe/internal/services/lms/port"
@@ -15,6 +20,7 @@ import (
 var log = logger.Get()
 
 func main() {
+
 	ctrl := controller.New(
 		store.New("lms"),
 		notify.New(),
@@ -24,6 +30,21 @@ func main() {
 	// Initialize
 	server := grpc.NewServer()
 	port.Register(server, ctrl)
+
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
+	var stopOnce sync.Once
+	go func() {
+		for sig := range sigchan {
+			fmt.Println("Received signal:", sig)
+			stopOnce.Do(func() {
+				fmt.Println("Stopping server gracefully...")
+				server.GracefulStop()
+			})
+			fmt.Println("Forcing server to stop...")
+			server.Stop()
+		}
+	}()
 
 	// Listen and serve
 	lis, err := net.Listen("tcp", ":8080")
